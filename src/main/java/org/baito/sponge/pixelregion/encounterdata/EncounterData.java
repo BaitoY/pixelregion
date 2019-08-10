@@ -1,13 +1,21 @@
 package org.baito.sponge.pixelregion.encounterdata;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
+import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipant;
+import com.pixelmonmod.pixelmon.battles.controller.participants.WildPixelmonParticipant;
+import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
+import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.world.weather.Weather;
-import org.spongepowered.api.world.weather.Weathers;
+
+import java.util.Random;
 
 public class EncounterData {
     public String name;
@@ -42,11 +50,43 @@ public class EncounterData {
         }
     }
 
-    public boolean condMet(Player plr) {
+    public boolean metConditions(Player plr) {
+        if (conditions == null) return true;
         for (Conditions i : conditions) {
-            if (!i.isTrue(plr)) return false;
+            switch (i.type) {
+                case "weather":
+                    for (String w : i.weather) {
+                        if (!contains(i.weather, Sponge.getServer().getWorld(Sponge.getServer().
+                                getDefaultWorldName()).get().getWeather().getName())) return false;
+                    }
+                    break;
+                case "time":
+                    int cTime = ((int) Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().getProperties().getWorldTime() % 24000);
+                    if (!(cTime >= i.time[0] && cTime <= i.time[1])) return false;
+                    break;
+                case "ontop":
+                    String cBlockO = Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().
+                            getBlock(plr.getPosition().getFloorX(),
+                                    plr.getPosition().getFloorY() - 1, plr.getPosition().getFloorZ()).getType().getName();
+                    if (!contains(i.ontop, cBlockO)) return false;
+                    break;
+
+                case "inside":
+                    String cBlockI = Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().
+                            getBlock(plr.getPosition().getFloorX(),
+                                    plr.getPosition().getFloorY(), plr.getPosition().getFloorZ()).getType().getName();
+                    if (!contains(i.inside, cBlockI)) return false;
+                    break;
+            }
         }
         return true;
+    }
+
+    private boolean contains(String[] arr, String s) {
+        for (String i : arr) {
+            if (i.equals(s)) return true;
+        }
+        return false;
     }
 
     public Encounters.DeepEncounterData getDED() {
@@ -67,8 +107,8 @@ public class EncounterData {
         public String type;
         public String[] weather = null;
         public int[] time = null;
-        public String[] onBlocks = null;
-        public String[] inBlocks = null;
+        public String[] ontop = null;
+        public String[] inside = null;
 
         Conditions(JSONObject j, String name) {
             try {
@@ -91,22 +131,22 @@ public class EncounterData {
                         time[0] = j.getJSONArray("times").getInt(0);
                         time[1] = j.getJSONArray("times").getInt(1);
                         break;
-                    case "onBlocks":
+                    case "ontop":
                         if (!j.has("blocks")) {
-                            throw new NullPointerException("Encounter data " + name + " has no \"blocks\" array for condition onBlocks! Skipping...");
+                            throw new NullPointerException("Encounter data " + name + " has no \"blocks\" array for condition ontop! Skipping...");
                         }
-                        onBlocks = new String[j.getJSONArray("blocks").length()];
+                        ontop = new String[j.getJSONArray("blocks").length()];
                         for (int i = 0; i < j.getJSONArray("blocks").length(); i++) {
-                            onBlocks[i] = j.getJSONArray("blocks").getString(i);
+                            ontop[i] = j.getJSONArray("blocks").getString(i);
                         }
                         break;
-                    case "inBlocks":
+                    case "inside":
                         if (!j.has("blocks")) {
-                            throw new NullPointerException("Encounter data " + name + " has no \"blocks\" array for condition inBlocks! Skipping...");
+                            throw new NullPointerException("Encounter data " + name + " has no \"blocks\" array for condition inside! Skipping...");
                         }
-                        inBlocks = new String[j.getJSONArray("blocks").length()];
+                        inside = new String[j.getJSONArray("blocks").length()];
                         for (int i = 0; i < j.getJSONArray("blocks").length(); i++) {
-                            inBlocks[i] = j.getJSONArray("blocks").getString(i);
+                            inside[i] = j.getJSONArray("blocks").getString(i);
                         }
                         break;
                 }
@@ -130,10 +170,10 @@ public class EncounterData {
                 case "time":
                     String[] r = {time[0] + "", time[1] + ""};
                     return r;
-                case "onBlocks":
-                    return onBlocks.clone();
-                case "inBlocks":
-                    return inBlocks.clone();
+                case "ontop":
+                    return ontop.clone();
+                case "inside":
+                    return inside.clone();
             }
             return null;
         }
@@ -144,56 +184,16 @@ public class EncounterData {
                     return "Weather";
                 case "time":
                     return "Time";
-                case "onBlocks":
-                    return "On Blocks";
-                case "inBlocks":
-                    return "In Blocks";
+                case "ontop":
+                    return "Ontop";
+                case "inside":
+                    return "Inside";
             }
             return null;
         }
-
-        public Boolean isTrue(Player plr) {
-            switch (type) {
-                case "weather":
-                    Weather current = Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().getWeather();
-                    String currentS;
-                    if (Weathers.CLEAR.equals(current)) {
-                        currentS = "clear";
-                    } else if (Weathers.RAIN.equals(current)) {
-                        currentS = "rain";
-                    } else {
-                        currentS = "thunder";
-                    }
-                    for (int i = 0; i < weather.length; i++) {
-                        if (weather[i].toUpperCase().equals(currentS)) return true;
-                    }
-                    break;
-                case "time":
-                    int cTime = (int) (Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().getProperties().getWorldTime() % 24000);
-                    if (cTime >= time[0] && cTime <= time[1]) return true;
-                    break;
-                case "onBlocks":
-                    BlockState blockUnder = Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName())
-                            .get().getBlock(plr.getPosition().getFloorX(), plr.getPosition().getFloorY() - 1,
-                                    plr.getPosition().getFloorZ());
-                    for (String i : onBlocks) {
-                        if (i.equals(blockUnder.getId())) return true;
-                    }
-                    break;
-                case "inBlocks":
-                    BlockState blockIn = Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName())
-                            .get().getBlock(plr.getPosition().getFloorX(), plr.getPosition().getFloorY(),
-                                    plr.getPosition().getFloorZ());
-                    for (String i : onBlocks) {
-                        if (i.equals(blockIn.getId())) return true;
-                    }
-                    break;
-            }
-            return false;
-        }
     }
 
-    public class Encounters {
+    public static class Encounters {
         public int[] defaultLevels = new int[2];
         public int defaultShiny;
         public int defaultBoss;
@@ -204,8 +204,8 @@ public class EncounterData {
                 if (!j.has("levelMin") || !j.has("levelMax")) {
                     throw new NullPointerException("Encounter data " + name + " has no global default levels! Skipping...");
                 }
-                defaultLevels[0] = j.has("levelMin") ? j.getInt("levelMin") : null;
-                defaultLevels[1] = j.has("levelMax") ? j.getInt("levelMax") : null;
+                defaultLevels[0] = j.has("levelMin") ? Math.max(j.getInt("levelMin"), 1) : null;
+                defaultLevels[1] = j.has("levelMax") ? Math.min(j.getInt("levelMax"), 101) : null;
                 if (!j.has("shinyChance")) {
                     throw new NullPointerException("Encounter data " + name + " has no global default shiny chance! Skipping...");
                 }
@@ -262,28 +262,42 @@ public class EncounterData {
 
             public void execute(Player plr) {
                 StringBuilder sb = new StringBuilder();
-                sb.append(species[(int)Math.floor(Math.random() * species.length)]);
-                sb.append(",lvl:"+((int)Math.floor(Math.random() * deepLevels[1] - deepLevels[0]) + deepLevels[0]));
+                sb.append(species[(int) Math.floor(Math.random() * species.length)]);
+                sb.append(" lvl:" + ((int) (Math.floor(Math.random() * (deepLevels[1] - deepLevels[0])) + deepLevels[0]) + 1));
                 int shinyBonus = 0;
                 if (Pixelmon.storageManager.getParty(plr.getUniqueId()).getShinyCharm().isActive()) {
                     shinyBonus = 3;
                 }
-                if (Math.floor(Math.random() * deepShiny + shinyBonus) == 0) {
-                    sb.append(",s");
+                if (Math.floor(Math.random() * Math.max(deepShiny - shinyBonus, 1)) == 0) {
+                    sb.append(" s");
                 } else {
-                    sb.append(",!s");
+                    sb.append(" !s");
                 }
                 if (Math.floor(Math.random() * deepBoss) == 0) {
-                    sb.append(",boss:" + Math.floor(Math.random() * 3) + 1);
+                    sb.append(" boss:" + Math.floor(Math.random() * 4) + 1);
                 }
-                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), "pokebattle " + plr.getName() + " " + sb.toString());
+                startBattle(plr, sb.toString());
+            }
+
+            public boolean startBattle(Player plr, String pokemonSpec) {
+                EntityPlayerMP source = (EntityPlayerMP)plr;
+                if (Pixelmon.storageManager.getParty(source.getUniqueID()).getAndSendOutFirstAblePokemon(source) != null) {
+                    PlayerParticipant pp = new PlayerParticipant(source, Pixelmon.storageManager.
+                            getParty(source.getUniqueID()).getAndSendOutFirstAblePokemon(source));
+                    EntityPixelmon pos = Pixelmon.pokemonFactory.create(PokemonSpec.from(pokemonSpec.split(" "))).
+                            getOrSpawnPixelmon(source.getEntityWorld(), source.getPosition().getX(),
+                                    source.getPosition().getY(), source.getPosition().getZ());
+                    BattleRegistry.startBattle(pp, new WildPixelmonParticipant(pos));
+                    return true;
+                }
+                return false;
             }
         }
     }
 
     public String info() {
         StringBuilder s = new StringBuilder();
-        s.append("\n  &a= Encounter chance: &f").append(tickChance).append("%");
+        s.append("  &a= Encounter chance: &f").append(tickChance).append("%");
         s.append("\n  &a= Conditions:");
         for (int cond = 0; cond < conditions.length; cond++) {
             s.append("\n    &b= ").append(conditions[cond].getTypePrint()).append(": ");

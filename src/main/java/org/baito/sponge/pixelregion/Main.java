@@ -1,10 +1,27 @@
 package org.baito.sponge.pixelregion;
 
 import com.google.inject.Inject;
+import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
+import com.pixelmonmod.pixelmon.battles.BattleQuery;
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
+import com.pixelmonmod.pixelmon.battles.controller.BattleControllerBase;
+import com.pixelmonmod.pixelmon.battles.controller.participants.BattleParticipant;
+import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipant;
+import com.pixelmonmod.pixelmon.battles.controller.participants.WildPixelmonParticipant;
+import com.pixelmonmod.pixelmon.battles.rules.BattleRules;
+import com.pixelmonmod.pixelmon.battles.rules.clauses.BattleClause;
+import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
+import com.pixelmonmod.pixelmon.enums.EnumSpecies;
+import com.pixelmonmod.pixelmon.enums.battle.EnumBattleType;
+import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.math.BlockPos;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
-import org.baito.sponge.pixelregion.playerdata.PlayerLink;
+import org.baito.sponge.pixelregion.eventlistener.LoginMoveListener;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
-import org.baito.sponge.pixelregion.regions.Region;
 import org.baito.sponge.pixelregion.regions.RegionManager;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
@@ -15,13 +32,13 @@ import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
-import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
+
+import java.util.List;
 
 @Plugin(
         id = "pixelregion",
@@ -49,43 +66,17 @@ public class Main {
         } else {
             enabled = true;
             registerCommands();
+            Sponge.getEventManager().registerListeners(this, new LoginMoveListener());
             logger.info("Pixelregion has been successfully enabled!");
         }
     }
 
-    @Listener
-    public void onMove(MoveEntityEvent e) {
-        if (enabled && e.getTargetEntity() instanceof Player) {
-            manageRegion((Player) e.getTargetEntity());
+    private boolean checkPerm(Player pl, String p) {
+        if (!pl.hasPermission(p)) {
+            pl.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "You do not have permission to use this command."));
+            return false;
         }
-    }
-
-    @Listener
-    public void onLogin(ClientConnectionEvent.Join e) {
-        if (enabled) {
-            manageRegion(e.getTargetEntity());
-        }
-    }
-
-    private void manageRegion(Player e) {
-        String UUID = e.getUniqueId().toString();
-        PlayerLink PL = PlayerLinkManager.getLink(e);
-        Region R = RegionManager.getRegionInside(e);
-        if (R != null) {
-            if (!PL.inRegion || !R.name.equals(PL.region.name)) {
-                PL.inRegion = true;
-                PL.region = R;
-                if (R.notifyEnter && PL.sendNotif) {
-                    e.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Now entering >>> &f&l").toBuilder().append(R.displayName).build());
-                }
-            }
-        } else if (PL.inRegion) {
-            PL.inRegion = false;
-            if (PL.region.notifyExit && PL.sendNotif) {
-                e.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Now exiting >>> &f&l").toBuilder().append(PL.region.displayName).build());
-            }
-            PL.region = null;
-        }
+        return true;
     }
 
     private void registerCommands() {
@@ -95,6 +86,10 @@ public class Main {
                         GenericArguments.optional(GenericArguments.string(Text.of("sub")))
                 )
                 .executor((CommandSource src, CommandContext args) -> {
+
+                    if (!checkPerm((Player)src, "pixelregion.cmd")) {
+                        return CommandResult.success();
+                    }
                     if (!args.<String>getOne(Text.of("sub")).isPresent()) {
                         PaginationList.builder()
                                 .title(TextSerializers.FORMATTING_CODE.deserialize("&dPixelregion"))
@@ -107,10 +102,16 @@ public class Main {
                         Player plr = src instanceof Player ? (Player) src : null;
                         switch (sub) {
                             case "reload":
+                                if (!checkPerm((Player)src, "pixelregion.cmd.reload")) {
+                                    return CommandResult.success();
+                                }
                                 Config.load();
-                                src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Reloaded regions!"));
+                                src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Reloaded regions and encounters!"));
                                 break;
-                            case "rinfo":
+                            case "info":
+                                if (!checkPerm((Player)src, "pixelregion.cmd.info")) {
+                                    return CommandResult.success();
+                                }
                                 if (plr != null) {
                                     if (PlayerLinkManager.getLink(plr).region != null) {
                                         if (PlayerLinkManager.getLink(plr).region.desc != null || PlayerLinkManager.getLink(plr).region.encounterData != null) {
@@ -137,6 +138,9 @@ public class Main {
                                 }
                                 break;
                             case "togglenotif":
+                                if (!checkPerm((Player)src, "pixelregion.cmd.togglenotif")) {
+                                    return CommandResult.success();
+                                }
                                 if (plr != null) {
                                     PlayerLinkManager.getLink(plr).toggleNotif();
                                     if (PlayerLinkManager.getLink(plr).sendNotif) {

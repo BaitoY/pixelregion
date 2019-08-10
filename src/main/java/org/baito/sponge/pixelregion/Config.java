@@ -22,8 +22,10 @@ public class Config {
     public static Path pxrDir = configDir.resolve("pixelregion");
     public static Asset exampleRegion;
     public static Asset exampleEncounter;
+    public static Asset exampleExtMoveEncounter;
     public static File[] regionConfigs;
     public static File[] encConfigs;
+    public static File[] extMoveEncConfigs;
 
     Config() {
     }
@@ -31,6 +33,8 @@ public class Config {
     public static void setup() {
         exampleRegion = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleregion.conf").get();
         exampleEncounter = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleenc.conf").get();
+        exampleExtMoveEncounter = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").
+                get(), "exampleExternalMoveEnc.conf").get();
         if (!new File(pxrDir.toString()).exists()) {
             new File(pxrDir.toString()).mkdirs();
         }
@@ -46,6 +50,14 @@ public class Config {
             new File(pxrDir.resolve("encounterdata").toString()).mkdirs();
             try {
                 exampleEncounter.copyToDirectory(Paths.get(pxrDir.resolve("encounterdata") + fs));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (!new File(pxrDir.resolve("extmove_encounterdata").toString()).exists()) {
+            new File(pxrDir.resolve("extmove_encounterdata").toString()).mkdirs();
+            try {
+                exampleExtMoveEncounter.copyToDirectory(Paths.get(pxrDir.resolve("extmove_encounterdata") + fs));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -73,6 +85,10 @@ public class Config {
         encConfigs = new File(pxrDir.resolve("encounterdata") + fs).listFiles();
         if (encConfigs.length > 0) {
             EncounterDataManager.generateEncounters(encConfigs);
+        }
+        extMoveEncConfigs = new File(pxrDir.resolve("extmove_encounterdata") + fs).listFiles();
+        if (extMoveEncConfigs.length > 0) {
+            EncounterDataManager.generateExtEncounters(extMoveEncConfigs);
         }
         regionConfigs = new File(pxrDir.resolve("regions") + fs).listFiles();
         if (regionConfigs.length > 0) {

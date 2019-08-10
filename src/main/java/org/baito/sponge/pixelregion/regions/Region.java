@@ -2,10 +2,13 @@ package org.baito.sponge.pixelregion.regions;
 
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
+import org.baito.sponge.pixelregion.encounterdata.ExternalMoveEncounterData;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
+import org.spongepowered.api.world.World;
 
 import java.awt.*;
 
@@ -20,6 +23,9 @@ public class Region {
     public Text desc;
     public Polygon polygon;
     public EncounterData[] encounterData;
+    public ExternalMoveEncounterData headbuttData;
+    public ExternalMoveEncounterData sweetScentData;
+    public World world;
 
     Region(JSONObject j) {
         try {
@@ -38,12 +44,24 @@ public class Region {
                 notifyEnter = true;
                 notifyExit = true;
             }
+            if (j.has("dim")) {
+                if (Sponge.getServer().getWorld(j.getString("dim")).isPresent()) {
+                    world = Sponge.getServer().getWorld(j.getString("dim")).get();
+                } else {
+                    throw new NullPointerException("Region file " + name + "'s \"dim\" is an invalid world! Setting to default world.");
+                }
+            } else {
+                world = Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get();
+            }
             this.points = createArray(j.getJSONArray("points"));
             weight = j.has("weight") ? (double) j.getNumber("weight") : 1.0;
             desc = j.has("desc") ? TextSerializers.FORMATTING_CODE.deserialize(j.getString("desc")): null ;
             if (j.has("yDim")) {
-                yDim[0] = j.getJSONArray("yDim").getInt(0);
-                yDim[0] = j.getJSONArray("yDim").getInt(1);
+                yDim = new int[2];
+                yDim[0] = j.getJSONArray("yDim").getNumber(0).intValue();
+                yDim[1] = j.getJSONArray("yDim").getNumber(1).intValue();
+            } else {
+                yDim = null;
             }
             if (j.has("encounterData")) {
                 encounterData = new EncounterData[j.getJSONArray("encounterData").length()];
