@@ -6,6 +6,7 @@ import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipant;
 import com.pixelmonmod.pixelmon.battles.controller.participants.WildPixelmonParticipant;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
+import com.pixelmonmod.pixelmon.enums.EnumBossMode;
 import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.math.BlockPos;
@@ -94,7 +95,6 @@ public class EncounterData {
         for (Encounters.DeepEncounterData i : encounterData.deepEncounters) {
             totalWeight += i.weight;
         }
-        int ind;
         double chosenWeight = Math.random() * totalWeight;
         for (Encounters.DeepEncounterData i : encounterData.deepEncounters) {
             chosenWeight -= i.weight;
@@ -199,13 +199,13 @@ public class EncounterData {
         public int defaultBoss;
         public DeepEncounterData[] deepEncounters;
 
-        Encounters(JSONObject j, String name) {
+        public Encounters(JSONObject j, String name) {
             try {
                 if (!j.has("levelMin") || !j.has("levelMax")) {
                     throw new NullPointerException("Encounter data " + name + " has no global default levels! Skipping...");
                 }
                 defaultLevels[0] = j.has("levelMin") ? Math.max(j.getInt("levelMin"), 1) : null;
-                defaultLevels[1] = j.has("levelMax") ? Math.min(j.getInt("levelMax"), 101) : null;
+                defaultLevels[1] = j.has("levelMax") ? Math.min(j.getInt("levelMax"), 100) : null;
                 if (!j.has("shinyChance")) {
                     throw new NullPointerException("Encounter data " + name + " has no global default shiny chance! Skipping...");
                 }
@@ -274,12 +274,13 @@ public class EncounterData {
                     sb.append(" !s");
                 }
                 if (Math.floor(Math.random() * deepBoss) == 0) {
-                    sb.append(" boss:" + Math.floor(Math.random() * 4) + 1);
+                    startBattle(plr, sb.toString(), EnumBossMode.getRandomMode());
+                } else {
+                    startBattle(plr, sb.toString(), EnumBossMode.NotBoss);
                 }
-                startBattle(plr, sb.toString());
             }
 
-            public boolean startBattle(Player plr, String pokemonSpec) {
+            public boolean startBattle(Player plr, String pokemonSpec, EnumBossMode b) {
                 EntityPlayerMP source = (EntityPlayerMP)plr;
                 if (Pixelmon.storageManager.getParty(source.getUniqueID()).getAndSendOutFirstAblePokemon(source) != null) {
                     PlayerParticipant pp = new PlayerParticipant(source, Pixelmon.storageManager.
@@ -287,6 +288,7 @@ public class EncounterData {
                     EntityPixelmon pos = Pixelmon.pokemonFactory.create(PokemonSpec.from(pokemonSpec.split(" "))).
                             getOrSpawnPixelmon(source.getEntityWorld(), source.getPosition().getX(),
                                     source.getPosition().getY(), source.getPosition().getZ());
+                    pos.setBoss(b);
                     BattleRegistry.startBattle(pp, new WildPixelmonParticipant(pos));
                     return true;
                 }

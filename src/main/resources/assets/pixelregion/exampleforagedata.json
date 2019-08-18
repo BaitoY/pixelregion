@@ -1,0 +1,24 @@
+{
+  "name": "ExampleForage",
+  "chance": 50,
+  "conditions": [
+      {
+        "type": "time",
+        "times": [0, 12000]
+      },
+      {
+        "type": "types",
+        "types": ["ice","water"]
+      }
+    ],
+  "loot": [
+      {
+          "item": "pixelmon:master_ball",
+          "weight": 1.0
+      },
+      {
+        "item": "pixelmon:ultra_ball",
+        "weight": 10.0
+      }
+  ]
+}

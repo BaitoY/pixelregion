@@ -23,18 +23,20 @@ public class Config {
     public static Asset exampleRegion;
     public static Asset exampleEncounter;
     public static Asset exampleExtMoveEncounter;
+    public static Asset exampleForage;
     public static File[] regionConfigs;
     public static File[] encConfigs;
     public static File[] extMoveEncConfigs;
+    public static File[] forageConfigs;
 
     Config() {
     }
 
     public static void setup() {
-        exampleRegion = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleregion.conf").get();
-        exampleEncounter = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleenc.conf").get();
-        exampleExtMoveEncounter = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").
-                get(), "exampleExternalMoveEnc.conf").get();
+        exampleRegion = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleregion.json").get();
+        exampleEncounter = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleenc.json").get();
+        exampleExtMoveEncounter = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleExternalMoveEnc.json").get();
+        exampleForage = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleforagedata.json").get();
         if (!new File(pxrDir.toString()).exists()) {
             new File(pxrDir.toString()).mkdirs();
         }
@@ -54,10 +56,18 @@ public class Config {
                 e.printStackTrace();
             }
         }
-        if (!new File(pxrDir.resolve("extmove_encounterdata").toString()).exists()) {
-            new File(pxrDir.resolve("extmove_encounterdata").toString()).mkdirs();
+        if (!new File(pxrDir.resolve("externalencounterdata").toString()).exists()) {
+            new File(pxrDir.resolve("externalencounterdata").toString()).mkdirs();
             try {
-                exampleExtMoveEncounter.copyToDirectory(Paths.get(pxrDir.resolve("extmove_encounterdata") + fs));
+                exampleExtMoveEncounter.copyToDirectory(Paths.get(pxrDir.resolve("externalencounterdata") + fs));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (!new File(pxrDir.resolve("foragedata").toString()).exists()) {
+            new File(pxrDir.resolve("foragedata").toString()).mkdirs();
+            try {
+                exampleForage.copyToDirectory(Paths.get(pxrDir.resolve("foragedata") + fs));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -86,9 +96,13 @@ public class Config {
         if (encConfigs.length > 0) {
             EncounterDataManager.generateEncounters(encConfigs);
         }
-        extMoveEncConfigs = new File(pxrDir.resolve("extmove_encounterdata") + fs).listFiles();
+        extMoveEncConfigs = new File(pxrDir.resolve("externalencounterdata") + fs).listFiles();
         if (extMoveEncConfigs.length > 0) {
             EncounterDataManager.generateExtEncounters(extMoveEncConfigs);
+        }
+        forageConfigs = new File(pxrDir.resolve("foragedata") + fs).listFiles();
+        if (forageConfigs.length > 0) {
+            EncounterDataManager.generateForagedata(forageConfigs);
         }
         regionConfigs = new File(pxrDir.resolve("regions") + fs).listFiles();
         if (regionConfigs.length > 0) {

@@ -2,7 +2,8 @@ package org.baito.sponge.pixelregion.regions;
 
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
-import org.baito.sponge.pixelregion.encounterdata.ExternalMoveEncounterData;
+import org.baito.sponge.pixelregion.encounterdata.external.ExternalMoveEncounterData;
+import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.spongepowered.api.Sponge;
@@ -25,6 +26,7 @@ public class Region {
     public EncounterData[] encounterData;
     public ExternalMoveEncounterData headbuttData;
     public ExternalMoveEncounterData sweetScentData;
+    public ForageData forageData;
     public World world;
 
     Region(JSONObject j) {
@@ -68,6 +70,15 @@ public class Region {
                 for (int i = 0; i < encounterData.length; i++) {
                     encounterData[i] = EncounterDataManager.getData(j.getJSONArray("encounterData").getString(i));
                 }
+            }
+            if (j.has("sweetScentData")) {
+                sweetScentData = EncounterDataManager.getExtMoveData(j.getString("sweetScentData"));
+            }
+            if (j.has("headbuttData")) {
+                headbuttData = EncounterDataManager.getExtMoveData(j.getString("headbuttData"));
+            }
+            if (j.has("forageData")) {
+                forageData = EncounterDataManager.getForageData(j.getString("forageData"));
             }
             polygon = new Polygon();
             for (int i = 0; i < points.length; i++) {

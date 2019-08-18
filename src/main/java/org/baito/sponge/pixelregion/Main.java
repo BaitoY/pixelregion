@@ -2,24 +2,8 @@ package org.baito.sponge.pixelregion;
 
 import com.google.inject.Inject;
 import com.pixelmonmod.pixelmon.Pixelmon;
-import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
-import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
-import com.pixelmonmod.pixelmon.battles.BattleQuery;
-import com.pixelmonmod.pixelmon.battles.BattleRegistry;
-import com.pixelmonmod.pixelmon.battles.controller.BattleControllerBase;
-import com.pixelmonmod.pixelmon.battles.controller.participants.BattleParticipant;
-import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipant;
-import com.pixelmonmod.pixelmon.battles.controller.participants.WildPixelmonParticipant;
-import com.pixelmonmod.pixelmon.battles.rules.BattleRules;
-import com.pixelmonmod.pixelmon.battles.rules.clauses.BattleClause;
-import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
-import com.pixelmonmod.pixelmon.enums.EnumSpecies;
-import com.pixelmonmod.pixelmon.enums.battle.EnumBattleType;
-import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.math.BlockPos;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
+import org.baito.sponge.pixelregion.eventlistener.ExternalMoveListener;
 import org.baito.sponge.pixelregion.eventlistener.LoginMoveListener;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
 import org.baito.sponge.pixelregion.regions.RegionManager;
@@ -38,8 +22,6 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
-import java.util.List;
-
 @Plugin(
         id = "pixelregion",
         name = "Pixelregion",
@@ -48,25 +30,22 @@ import java.util.List;
 public class Main {
     @Inject
     private Logger logger;
-    private boolean enabled;
     public static String prefix = "&7[&dPXR&7] &6";
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
         if (!Sponge.getPluginManager().getPlugin("pixelmon").isPresent()) {
-            enabled = false;
             logger.info("Pixelmon is not installed! Pixelregion will not be enabled.");
             return;
         }
         Config.setup();
         Config.load();
         if (RegionManager.allRegions.length < 1) {
-            enabled = false;
             logger.info("No regions have been detected, Pixelregion will not be enabled.");
         } else {
-            enabled = true;
             registerCommands();
             Sponge.getEventManager().registerListeners(this, new LoginMoveListener());
+            Pixelmon.EVENT_BUS.register(new ExternalMoveListener());
             logger.info("Pixelregion has been successfully enabled!");
         }
     }
