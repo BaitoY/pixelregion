@@ -1,0 +1,21 @@
+{
+  "name": "RedOrbGroudon",
+  "conditions": {
+      "flagsDisabled":["RedOrbGroudon"],
+      "partyAverage": 70,
+      "times": [12000, 24000]
+    },
+  "trigger": {
+      "useItem": "pixelmon:red_orb"
+  },
+  "effects":
+    {
+      "enableFlags": ["RedOrbGroudon"],
+      "battle": {
+        "species": "Groudon",
+        "levelMin": 70,
+        "levelMax": 70,
+        "shinyChance": 6
+      }
+    }
+}

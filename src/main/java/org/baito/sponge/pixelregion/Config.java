@@ -1,6 +1,7 @@
 package org.baito.sponge.pixelregion;
 
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
+import org.baito.sponge.pixelregion.eventflags.EventFlagManager;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
 import org.baito.sponge.pixelregion.regions.RegionManager;
 import org.json.JSONObject;
@@ -20,14 +21,18 @@ public class Config {
     public static Path serverDir = execDir.getParent().getParent();
     public static Path configDir = serverDir.resolve("config");
     public static Path pxrDir = configDir.resolve("pixelregion");
+
     public static Asset exampleRegion;
     public static Asset exampleEncounter;
     public static Asset exampleExtMoveEncounter;
     public static Asset exampleForage;
+    public static Asset exampleEvent;
+
     public static File[] regionConfigs;
     public static File[] encConfigs;
     public static File[] extMoveEncConfigs;
     public static File[] forageConfigs;
+    public static File[] eventConfigs;
 
     Config() {
     }
@@ -37,6 +42,7 @@ public class Config {
         exampleEncounter = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleenc.json").get();
         exampleExtMoveEncounter = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleExternalMoveEnc.json").get();
         exampleForage = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleforagedata.json").get();
+        exampleEvent = Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "exampleevent.json").get();
         if (!new File(pxrDir.toString()).exists()) {
             new File(pxrDir.toString()).mkdirs();
         }
@@ -72,6 +78,14 @@ public class Config {
                 e.printStackTrace();
             }
         }
+        if (!new File(pxrDir.resolve("events").toString()).exists()) {
+            new File(pxrDir.resolve("events").toString()).mkdirs();
+            try {
+                exampleEvent.copyToDirectory(Paths.get(pxrDir.resolve("events") + fs));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static JSONObject readConfig(File conf) {
@@ -103,6 +117,10 @@ public class Config {
         forageConfigs = new File(pxrDir.resolve("foragedata") + fs).listFiles();
         if (forageConfigs.length > 0) {
             EncounterDataManager.generateForagedata(forageConfigs);
+        }
+        eventConfigs = new File(pxrDir.resolve("events") + fs).listFiles();
+        if (eventConfigs.length > 0) {
+            EventFlagManager.generateEvents(eventConfigs);
         }
         regionConfigs = new File(pxrDir.resolve("regions") + fs).listFiles();
         if (regionConfigs.length > 0) {

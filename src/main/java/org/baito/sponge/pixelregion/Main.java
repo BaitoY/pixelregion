@@ -101,9 +101,11 @@ public class Main {
                                             }
                                             if (PlayerLinkManager.getLink(plr).region.encounterData != null) {
                                                 plr.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Encounter Data [BETA]"));
+                                                int table = 1;
                                                 for (EncounterData i : PlayerLinkManager.getLink(plr).region.encounterData) {
                                                     plr.sendMessage(
-                                                            Text.builder().append(TextSerializers.FORMATTING_CODE.deserialize(i.info())).build());
+                                                            Text.builder().append(TextSerializers.FORMATTING_CODE.deserialize("\n&6> Table " + table + " <" + "\n" + i.info())).build());
+                                                    table++;
                                                 }
                                             }
                                         } else {
