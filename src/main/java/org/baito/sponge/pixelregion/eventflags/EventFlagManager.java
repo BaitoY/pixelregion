@@ -2,10 +2,11 @@ package org.baito.sponge.pixelregion.eventflags;
 
 import org.baito.sponge.pixelregion.Config;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 
 public class EventFlagManager {
-    public static Map<String, EventFlag> events;
+    public static Map<String, EventFlag> events = new HashMap<>();
 
     public static void generateEvents(File[] f) {
         for (int i = 0; i < f.length; i++) {

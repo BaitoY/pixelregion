@@ -4,22 +4,21 @@ import org.apache.commons.io.FilenameUtils;
 import org.baito.sponge.pixelregion.Config;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PlayerFlagDataManager {
-    public static List<PlayerFlagData> data = new ArrayList<>();
+    public static Map<String, PlayerFlagData> data = new HashMap<>();
 
     public static PlayerFlagData getOrCreateData(Player p) {
         Path direc = Config.pxrDir.resolve("events").resolve("playerdata");
-        for (PlayerFlagData i : data) {
-            if (i.uuid.equals(p.getUniqueId())) {
-                return i;
-            }
+        if (data.get(p.getUniqueId() + "") != null) {
+            return data.get(p.getUniqueId()+"");
         }
         File file = new File(direc.resolve(p.getUniqueId() + ".json").toString());
         try {
@@ -28,7 +27,7 @@ public class PlayerFlagDataManager {
             PrintWriter pw = new PrintWriter(file);
             pw.print(pfd.toJSON().toString(4));
             pw.close();
-            data.add(pfd);
+            data.put(p.getUniqueId()+"", pfd);
             return pfd;
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,14 +46,14 @@ public class PlayerFlagDataManager {
     }
 
     public static void generateData(File[] f) {
-        data = new ArrayList<PlayerFlagData>();
         for (int i = 0; i < f.length; i++) {
-            data.add(new PlayerFlagData(Config.readConfig(f[i])));
+            PlayerFlagData pfd = new PlayerFlagData(Config.readConfig(f[i]));
+            data.put(pfd.uuid + "", pfd);
         }
     }
 
     public static void save() {
-        for (PlayerFlagData i : data) {
+        for (PlayerFlagData i : data.values()) {
             Player p = Sponge.getServer().getPlayer(i.uuid).get();
             File f = getFile(p);
             try {
