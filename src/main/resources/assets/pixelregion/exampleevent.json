@@ -6,7 +6,10 @@
       "times": [12000, 24000]
     },
   "trigger": {
-      "useItem": "pixelmon:red_orb"
+      "useItem": {
+        "id": "pixelmon:red_orb",
+        "absorbOnUse": true
+      }
   },
   "effects":
     {

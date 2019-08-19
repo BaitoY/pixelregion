@@ -3,6 +3,7 @@ package org.baito.sponge.pixelregion;
 import com.google.inject.Inject;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
+import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
 import org.baito.sponge.pixelregion.eventlistener.ExternalMoveListener;
 import org.baito.sponge.pixelregion.eventlistener.LoginMoveListener;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
@@ -17,6 +18,7 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
@@ -48,6 +50,11 @@ public class Main {
             Pixelmon.EVENT_BUS.register(new ExternalMoveListener());
             logger.info("Pixelregion has been successfully enabled!");
         }
+    }
+
+    @Listener
+    public void onServerEnd(GameStoppingServerEvent e) {
+        PlayerFlagDataManager.save();
     }
 
     private boolean checkPerm(Player pl, String p) {
@@ -145,7 +152,9 @@ public class Main {
                         GenericArguments.optional(GenericArguments.string(Text.of("sub")))
                 )
                 .executor((CommandSource src, CommandContext args) -> {
-
+                    Player p = (Player)src;
+                    PlayerFlagDataManager.getOrCreateData(p).values.put("RedOrbGroudon", true);
+                    p.sendMessage(Text.of(PlayerFlagDataManager.getOrCreateData(p).values));
                     return CommandResult.success();
                 }).build(), "pxre");
     }

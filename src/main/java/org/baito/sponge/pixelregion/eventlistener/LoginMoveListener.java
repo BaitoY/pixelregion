@@ -1,6 +1,7 @@
 package org.baito.sponge.pixelregion.eventlistener;
 
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
+import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
 import org.baito.sponge.pixelregion.playerdata.PlayerLink;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
 import org.baito.sponge.pixelregion.regions.Region;
@@ -28,6 +29,7 @@ public class LoginMoveListener {
     @Listener
     public void onLogin(ClientConnectionEvent.Join e) {
         manageRegion(e.getTargetEntity());
+        PlayerFlagDataManager.getOrCreateData(e.getTargetEntity());
     }
 
     private void manageRegion(Player e) {
