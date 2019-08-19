@@ -3,18 +3,14 @@ package org.baito.sponge.pixelregion.playerdata;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class PlayerLinkManager {
-    public static PlayerLink[] links;
+    public static Map<String, PlayerLink> links = new HashMap<>();
 
-    public static void setup() {
-        links = new PlayerLink[0];
-    }
-
-    public static void pushLink(PlayerLink l) {
-        PlayerLink[] newLinks = new PlayerLink[links.length + 1];
-        System.arraycopy(links, 0, newLinks, 0, links.length);
-        newLinks[links.length] = l;
-        links = newLinks.clone();
+    public static void addLink(PlayerLink l) {
+        links.put(l.UUID, l);
     }
 
     public static Player getPlr(String UUID) {
@@ -22,15 +18,13 @@ public class PlayerLinkManager {
     }
 
     public static PlayerLink getLink(Player plr) {
-        if (links.length > 0) {
-            for (PlayerLink i : links) {
-                if (i.UUID.equals(plr.getUniqueId().toString())) {
-                    return i;
-                }
+        if (!links.isEmpty()) {
+            if (links.get(plr.getUniqueId() + "") != null) {
+                return links.get(plr.getUniqueId() + "");
             }
         }
         PlayerLink newLink = new PlayerLink(plr.getUniqueId().toString());
-        pushLink(newLink);
-        return links[links.length - 1];
+        links.put(plr.getUniqueId() + "", newLink);
+        return newLink;
     }
 }

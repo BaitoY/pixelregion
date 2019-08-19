@@ -1,54 +1,56 @@
 package org.baito.sponge.pixelregion.encounterdata;
 
 import org.baito.sponge.pixelregion.Config;
-import org.baito.sponge.pixelregion.encounterdata.external.ExternalMoveEncounterData;
+import org.baito.sponge.pixelregion.encounterdata.external.ExternalEncounterData;
 import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EncounterDataManager {
-    public static EncounterData[] encounterData;
-    public static ExternalMoveEncounterData[] extEncounterData;
-    public static ForageData[] forageData;
+    public static Map<String, EncounterData> encounterData = new HashMap<>();
+    public static Map<String, ExternalEncounterData> externalEncounterData = new HashMap<>();
+    public static Map<String, ForageData> forageData = new HashMap<>();
 
     public static void generateEncounters(File[] f) {
-        encounterData = new EncounterData[f.length];
-        for (int i = 0; i < encounterData.length; i++) {
-            encounterData[i] = new EncounterData(Config.readConfig(f[i]));
+        for (int i = 0; i < f.length; i++) {
+            EncounterData ed = new EncounterData(Config.readConfig(f[i]));
+            encounterData.put(ed.name, ed);
         }
     }
 
     public static void generateExtEncounters(File[] f) {
-        extEncounterData = new ExternalMoveEncounterData[f.length];
-        for (int i = 0; i < extEncounterData.length; i++) {
-            extEncounterData[i] = new ExternalMoveEncounterData(Config.readConfig(f[i]));
+        for (int i = 0; i < f.length; i++) {
+            ExternalEncounterData ed = new ExternalEncounterData(Config.readConfig(f[i]));
+            externalEncounterData.put(ed.name, ed);
         }
     }
 
     public static void generateForagedata(File[] f) {
-        forageData = new ForageData[f.length];
-        for (int i = 0; i < extEncounterData.length; i++) {
-            forageData[i] = new ForageData(Config.readConfig(f[i]));
+        for (int i = 0; i < f.length; i++) {
+            ForageData ed = new ForageData(Config.readConfig(f[i]));
+            forageData.put(ed.name, ed);
         }
     }
 
     public static EncounterData getData(String name) {
-        for (EncounterData i : encounterData) {
-            if (i.name.equals(name)) return i;
+        if (encounterData.get(name) != null) {
+            return encounterData.get(name);
         }
         return null;
     }
 
-    public static ExternalMoveEncounterData getExtMoveData(String name) {
-        for (ExternalMoveEncounterData i : extEncounterData) {
-            if (i.name.equals(name)) return i;
+    public static ExternalEncounterData getExtMoveData(String name) {
+        if (externalEncounterData.get(name) != null) {
+            return externalEncounterData.get(name);
         }
         return null;
     }
 
     public static ForageData getForageData(String name) {
-        for (ForageData i : forageData) {
-            if (i.name.equals(name)) return i;
+        if (forageData.get(name) != null) {
+            return forageData.get(name);
         }
         return null;
     }

@@ -2,7 +2,7 @@ package org.baito.sponge.pixelregion.regions;
 
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
-import org.baito.sponge.pixelregion.encounterdata.external.ExternalMoveEncounterData;
+import org.baito.sponge.pixelregion.encounterdata.external.ExternalEncounterData;
 import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -24,8 +24,8 @@ public class Region {
     public Text desc;
     public Polygon polygon;
     public EncounterData[] encounterData;
-    public ExternalMoveEncounterData headbuttData;
-    public ExternalMoveEncounterData sweetScentData;
+    public ExternalEncounterData headbuttData;
+    public ExternalEncounterData sweetScentData;
     public ForageData forageData;
     public World world;
 

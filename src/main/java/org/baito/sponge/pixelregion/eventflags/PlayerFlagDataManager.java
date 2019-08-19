@@ -16,9 +16,9 @@ public class PlayerFlagDataManager {
 
     public static PlayerFlagData getOrCreateData(Player p) {
         Path direc = Config.pxrDir.resolve("events").resolve("playerdata");
-        for (int i = 0; i < direc.toFile().listFiles().length; i++) {
-            if (FilenameUtils.removeExtension(direc.toFile().listFiles()[i].getName()).equals(p.getUniqueId().toString())) {
-                return new PlayerFlagData(Config.readConfig(direc.toFile().listFiles()[i]));
+        for (PlayerFlagData i : data) {
+            if (i.uuid.equals(p.getUniqueId())) {
+                return i;
             }
         }
         File file = new File(direc.resolve(p.getUniqueId() + ".json").toString());

@@ -3,7 +3,6 @@ package org.baito.sponge.pixelregion;
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
 import org.baito.sponge.pixelregion.eventflags.EventFlagManager;
 import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
-import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
 import org.baito.sponge.pixelregion.regions.RegionManager;
 import org.json.JSONObject;
 import org.spongepowered.api.Sponge;
@@ -118,7 +117,6 @@ public class Config {
         File[] regionConfigs = new File(pxrDir.resolve("regions") + fs).listFiles();
         if (regionConfigs != null && regionConfigs.length > 0) {
             RegionManager.generateRegions(regionConfigs);
-            PlayerLinkManager.setup();
         }
     }
 }

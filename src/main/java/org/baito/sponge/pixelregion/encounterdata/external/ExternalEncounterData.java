@@ -8,13 +8,13 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.Player;
 
-public class ExternalMoveEncounterData {
+public class ExternalEncounterData {
     public String name;
     public int chance;
     public ExternalConditions[] conditions;
     public EncounterData.Encounters encounterData;
 
-    public ExternalMoveEncounterData(JSONObject j) {
+    public ExternalEncounterData(JSONObject j) {
         try {
             if (!j.has("name")) {
                 throw new NullPointerException("An external encounter data has no name! Skipping...");

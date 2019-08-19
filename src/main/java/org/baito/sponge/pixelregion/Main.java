@@ -42,7 +42,7 @@ public class Main {
         }
         Config.setup();
         Config.load();
-        if (RegionManager.allRegions.length < 1) {
+        if (RegionManager.allRegions.isEmpty()) {
             logger.info("No regions have been detected, Pixelregion will not be enabled.");
         } else {
             registerCommands();
@@ -153,7 +153,6 @@ public class Main {
                 )
                 .executor((CommandSource src, CommandContext args) -> {
                     Player p = (Player)src;
-                    PlayerFlagDataManager.getOrCreateData(p).values.put("RedOrbGroudon", true);
                     p.sendMessage(Text.of(PlayerFlagDataManager.getOrCreateData(p).values));
                     return CommandResult.success();
                 }).build(), "pxre");

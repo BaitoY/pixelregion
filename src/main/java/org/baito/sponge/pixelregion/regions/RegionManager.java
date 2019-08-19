@@ -4,14 +4,16 @@ import org.baito.sponge.pixelregion.Config;
 import org.spongepowered.api.entity.living.player.Player;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegionManager {
-    public static Region[] allRegions;
+    public static Map<String, Region> allRegions = new HashMap<>();
 
     public static void generateRegions(File[] f) {
-        allRegions = new Region[f.length];
-        for (int i = 0; i < allRegions.length; i++) {
-            allRegions[i] = new Region(Config.readConfig(f[i]));
+        for (int i = 0; i < f.length; i++) {
+            Region r = new Region(Config.readConfig(f[i]));
+            allRegions.put(r.name, r);
         }
     }
 
@@ -20,7 +22,7 @@ public class RegionManager {
         int y = plr.getPosition().getFloorY();
         int z = plr.getPosition().getFloorZ();
         Region location = null;
-        for (Region i : allRegions) {
+        for (Region i : allRegions.values()) {
             if (!i.world.equals(plr.getWorld())) {
                 continue;
             }
