@@ -1,9 +1,14 @@
 {
   "name": "RedOrbGroudon",
   "conditions": {
-      "flagsDisabled":["RedOrbGroudon"],
-      "partyAverage": 70,
-      "times": [12000, 24000]
+      "flagConditions":{
+        "disabled": ["RedOrbGroudon"]
+      },
+      "partyConditions": {
+        "useEntireParty": true,
+        "average": 70
+      },
+      "worldConditions": [12000, 24000]
     },
   "trigger": {
       "useItem": {
