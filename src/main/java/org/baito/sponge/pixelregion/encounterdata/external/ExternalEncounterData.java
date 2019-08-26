@@ -4,9 +4,9 @@ import com.pixelmonmod.pixelmon.api.events.ExternalMoveEvent;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.world.World;
 
 public class ExternalEncounterData {
     public String name;
@@ -127,18 +127,17 @@ public class ExternalEncounterData {
         }
     }
 
-    public boolean metConditions(Player plr, ExternalMoveEvent.PreparingMove e, boolean headButt) {
+    public boolean metConditions(Player plr, ExternalMoveEvent.PreparingMove e, boolean headButt, World world) {
         if (conditions == null) return true;
         for (ExternalConditions i : conditions) {
             switch (i.type) {
                 case "weather":
                     for (String w : i.weather) {
-                        if (!contains(i.weather, Sponge.getServer().getWorld(Sponge.getServer().
-                                getDefaultWorldName()).get().getWeather().getName())) return false;
+                        if (!contains(i.weather, world.getWeather().getName())) return false;
                     }
                     break;
                 case "time":
-                    int cTime = ((int) Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().getProperties().getWorldTime() % 24000);
+                    int cTime = ((int) world.getProperties().getWorldTime() % 24000);
                     if (!(cTime >= i.time[0] && cTime <= i.time[1])) return false;
                     break;
                 case "blocks":

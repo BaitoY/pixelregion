@@ -4,12 +4,13 @@ import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
 import org.baito.sponge.pixelregion.encounterdata.external.ExternalEncounterData;
 import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
+import org.baito.sponge.pixelregion.eventflags.EventFlag;
+import org.baito.sponge.pixelregion.eventflags.EventFlagManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
-import org.spongepowered.api.world.World;
 
 import java.awt.*;
 
@@ -27,7 +28,8 @@ public class Region {
     public ExternalEncounterData headbuttData;
     public ExternalEncounterData sweetScentData;
     public ForageData forageData;
-    public World world;
+    public EventFlag[] eventFlags;
+    public String world;
 
     Region(JSONObject j) {
         try {
@@ -46,14 +48,10 @@ public class Region {
                 notifyEnter = true;
                 notifyExit = true;
             }
-            if (j.has("dim")) {
-                if (Sponge.getServer().getWorld(j.getString("dim")).isPresent()) {
-                    world = Sponge.getServer().getWorld(j.getString("dim")).get();
-                } else {
-                    throw new NullPointerException("Region file " + name + "'s \"dim\" is an invalid world! Setting to default world.");
-                }
+            if (j.has("world")) {
+                world = j.getString("world");
             } else {
-                world = Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get();
+                world = Sponge.getServer().getDefaultWorldName();
             }
             this.points = createArray(j.getJSONArray("points"));
             weight = j.has("weight") ? (double) j.getNumber("weight") : 1.0;
@@ -79,6 +77,12 @@ public class Region {
             }
             if (j.has("forageData")) {
                 forageData = EncounterDataManager.getForageData(j.getString("forageData"));
+            }
+            if (j.has("eventFlags")) {
+                eventFlags = new EventFlag[j.getJSONArray("eventFlags").length()];
+                for (int i = 0; i < j.getJSONArray("eventFlags").length(); i++) {
+                    eventFlags[i] = EventFlagManager.getFlag(j.getJSONArray("eventFlags").getString(i));
+                }
             }
             polygon = new Polygon();
             for (int i = 0; i < points.length; i++) {

@@ -1,12 +1,10 @@
 package org.baito.sponge.pixelregion.eventlistener;
 
 import com.pixelmonmod.pixelmon.api.events.ExternalMoveEvent;
-import com.pixelmonmod.pixelmon.entities.pixelmon.externalMoves.ForageItem;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.storage.playerData.ExternalMoveData;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.baito.sponge.pixelregion.Main;
 import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
@@ -14,6 +12,7 @@ import org.baito.sponge.pixelregion.playerdata.PlayerLink;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.serializer.TextSerializers;
+import org.spongepowered.api.world.World;
 
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class ExternalMoveListener {
                 e.setCooldown(500 - e.pokemon.getPokemonData().getStat(StatsType.Speed));
                 move.timeLastUsed = e.pokemon.world.getTotalWorldTime();
                 if (Math.floor(Math.random() * 100) < pl.region.sweetScentData.chance) {
-                    if (pl.region.sweetScentData.metConditions((Player) e.player, e, false)) {
+                    if (pl.region.sweetScentData.metConditions((Player) e.player, e, false, (World)e.player.world)) {
                         pl.region.sweetScentData.getDED().execute((Player) e.player);
                     }
                 } else {
@@ -78,7 +77,7 @@ public class ExternalMoveListener {
                 e.setCooldown(500 - e.pokemon.getPokemonData().getStat(StatsType.Speed));
                 move.timeLastUsed = e.pokemon.world.getTotalWorldTime();
                 if (Math.floor(Math.random() * 100) < pl.region.headbuttData.chance) {
-                    if (pl.region.headbuttData.metConditions((Player) e.player, e, true)) {
+                    if (pl.region.headbuttData.metConditions((Player) e.player, e, true, (World)e.player.world)) {
                         pl.region.headbuttData.getDED().execute((Player) e.player);
                     }
                 } else {

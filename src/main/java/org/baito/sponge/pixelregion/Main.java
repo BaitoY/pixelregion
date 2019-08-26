@@ -20,9 +20,12 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
+
+import java.util.concurrent.TimeUnit;
 
 @Plugin(
         id = "pixelregion",
@@ -48,6 +51,15 @@ public class Main {
             registerCommands();
             Sponge.getEventManager().registerListeners(this, new LoginMoveListener());
             Pixelmon.EVENT_BUS.register(new ExternalMoveListener());
+            Task.builder().interval(50, TimeUnit.MILLISECONDS).execute(new Runnable() {
+                @Override
+                public void run() {
+                    LoginMoveListener.interval++;
+                    if (LoginMoveListener.interval > 20) {
+                        LoginMoveListener.interval = 0;
+                    }
+                }
+            }).submit(this);
             logger.info("Pixelregion has been successfully enabled!");
         }
     }
@@ -73,7 +85,7 @@ public class Main {
                 )
                 .executor((CommandSource src, CommandContext args) -> {
 
-                    if (!checkPerm((Player)src, "pixelregion.cmd")) {
+                    if (!checkPerm((Player) src, "pixelregion.cmd")) {
                         return CommandResult.success();
                     }
                     if (!args.<String>getOne(Text.of("sub")).isPresent()) {
@@ -88,14 +100,14 @@ public class Main {
                         Player plr = src instanceof Player ? (Player) src : null;
                         switch (sub) {
                             case "reload":
-                                if (!checkPerm((Player)src, "pixelregion.cmd.reload")) {
+                                if (!checkPerm((Player) src, "pixelregion.cmd.reload")) {
                                     return CommandResult.success();
                                 }
                                 Config.load();
                                 src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Reloaded regions and encounters!"));
                                 break;
                             case "info":
-                                if (!checkPerm((Player)src, "pixelregion.cmd.info")) {
+                                if (!checkPerm((Player) src, "pixelregion.cmd.info")) {
                                     return CommandResult.success();
                                 }
                                 if (plr != null) {
@@ -126,7 +138,7 @@ public class Main {
                                 }
                                 break;
                             case "togglenotif":
-                                if (!checkPerm((Player)src, "pixelregion.cmd.togglenotif")) {
+                                if (!checkPerm((Player) src, "pixelregion.cmd.togglenotif")) {
                                     return CommandResult.success();
                                 }
                                 if (plr != null) {
@@ -152,8 +164,6 @@ public class Main {
                         GenericArguments.optional(GenericArguments.string(Text.of("sub")))
                 )
                 .executor((CommandSource src, CommandContext args) -> {
-                    Player p = (Player)src;
-                    p.sendMessage(Text.of(PlayerFlagDataManager.getOrCreateData(p).values));
                     return CommandResult.success();
                 }).build(), "pxre");
     }

@@ -14,14 +14,14 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 
 public class LoginMoveListener {
     public static String prefix = "&7[&dPXR&7] &6";
+    public static int interval = 0;
 
     @Listener
     public void onMove(MoveEntityEvent e) {
-        int time = (int) e.getTargetEntity().getWorld().getProperties().getWorldTime() % 24000;
         if (e.getTargetEntity() instanceof Player && ((Player) e.getTargetEntity()).hasPermission("pixelregion.regions.change")) {
             manageRegion((Player) e.getTargetEntity());
         }
-        if (e.getTargetEntity() instanceof Player && time % 20 == 0) {
+        if (interval == 20 && e.getTargetEntity() instanceof Player) {
             handleEncounter((Player) e.getTargetEntity());
         }
     }
@@ -53,12 +53,12 @@ public class LoginMoveListener {
         }
     }
 
-    private void handleEncounter(Player e) {
+    public static void handleEncounter(Player e) {
         if (PlayerLinkManager.getLink(e).region != null && PlayerLinkManager.getLink(e).region.encounterData != null) {
             EncounterData toUse = null;
             for (EncounterData i : PlayerLinkManager.getLink(e).region.encounterData) {
                 if (Math.floor(Math.random() * 101) < i.tickChance) {
-                    if (i.metConditions(e)) {
+                    if (i.metConditions(e, e.getWorld())) {
                         toUse = i;
                         break;
                     }

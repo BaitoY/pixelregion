@@ -7,16 +7,11 @@ import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipan
 import com.pixelmonmod.pixelmon.battles.controller.participants.WildPixelmonParticipant;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumBossMode;
-import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
-
-import java.util.Random;
+import org.spongepowered.api.world.World;
 
 public class EncounterData {
     public String name;
@@ -51,29 +46,28 @@ public class EncounterData {
         }
     }
 
-    public boolean metConditions(Player plr) {
+    public boolean metConditions(Player plr, World world) {
         if (conditions == null) return true;
         for (Conditions i : conditions) {
             switch (i.type) {
                 case "weather":
                     for (String w : i.weather) {
-                        if (!contains(i.weather, Sponge.getServer().getWorld(Sponge.getServer().
-                                getDefaultWorldName()).get().getWeather().getName())) return false;
+                        if (!contains(i.weather, world.getWeather().getName())) return false;
                     }
                     break;
                 case "time":
-                    int cTime = ((int) Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().getProperties().getWorldTime() % 24000);
+                    int cTime = ((int) world.getProperties().getWorldTime() % 24000);
                     if (!(cTime >= i.time[0] && cTime <= i.time[1])) return false;
                     break;
                 case "ontop":
-                    String cBlockO = Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().
+                    String cBlockO = world.
                             getBlock(plr.getPosition().getFloorX(),
                                     plr.getPosition().getFloorY() - 1, plr.getPosition().getFloorZ()).getType().getName();
                     if (!contains(i.ontop, cBlockO)) return false;
                     break;
 
                 case "inside":
-                    String cBlockI = Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().
+                    String cBlockI = world.
                             getBlock(plr.getPosition().getFloorX(),
                                     plr.getPosition().getFloorY(), plr.getPosition().getFloorZ()).getType().getName();
                     if (!contains(i.inside, cBlockI)) return false;
@@ -261,6 +255,9 @@ public class EncounterData {
             }
 
             public void execute(Player plr) {
+                if (BattleRegistry.getBattle((EntityPlayerMP)plr) != null) {
+                    return;
+                }
                 StringBuilder sb = new StringBuilder();
                 sb.append(species[(int) Math.floor(Math.random() * species.length)]);
                 sb.append(" lvl:" + ((int) (Math.floor(Math.random() * (deepLevels[1] - deepLevels[0])) + deepLevels[0]) + 1));

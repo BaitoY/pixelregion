@@ -45,4 +45,11 @@ public class PlayerFlagData {
         o.put("values", valuesToArray());
         return o;
     }
+
+    public boolean flagState(EventFlag f) {
+        if (values.containsKey(f.name)) {
+            return values.get(f.name);
+        }
+        return false;
+    }
 }

@@ -16,7 +16,7 @@ public class EventFlagManager {
     }
 
     public static EventFlag getFlag(String name) {
-        if (events.get(name) != null) {
+        if (events.containsKey(name)) {
             return events.get(name);
         }
         return null;

@@ -7,9 +7,14 @@ import org.baito.sponge.pixelregion.regions.RegionManager;
 import org.json.JSONObject;
 import org.spongepowered.api.Sponge;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Config {
     public static String fs = System.getProperty("file.separator");
@@ -91,29 +96,54 @@ public class Config {
     }
 
     public static void load() {
-        File[] encConfigs = new File(pxrDir.resolve("encounterdata") + fs).listFiles();
-        if (encConfigs != null && encConfigs.length > 0) {
+        File[] encConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("encounterdata") + fs));
+        if (encConfigs.length > 0) {
             EncounterDataManager.generateEncounters(encConfigs);
         }
-        File[] extMoveEncConfigs = new File(pxrDir.resolve("externalencounterdata") + fs).listFiles();
-        if (extMoveEncConfigs != null && extMoveEncConfigs.length > 0) {
+        File[] extMoveEncConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("externalencounterdata") + fs));
+        if (extMoveEncConfigs.length > 0) {
             EncounterDataManager.generateExtEncounters(extMoveEncConfigs);
         }
-        File[] forageConfigs = new File(pxrDir.resolve("foragedata") + fs).listFiles();
-        if (forageConfigs != null && forageConfigs.length > 0) {
+        File[] forageConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("foragedata") + fs));
+        if (forageConfigs.length > 0) {
             EncounterDataManager.generateForagedata(forageConfigs);
         }
         File[] eventConfigs = new File(pxrDir.resolve("events") + fs).listFiles(File::isFile);
         if (eventConfigs != null && eventConfigs.length > 0) {
             EventFlagManager.generateEvents(eventConfigs);
         }
-        File[] playerData = new File(pxrDir.resolve("events").resolve("playerdata") + fs).listFiles();
-        if (playerData != null && playerData.length > 0) {
+        File[] playerData = getAllFilesInDirectory(new File(pxrDir.resolve("events").resolve("playerdata") + fs));
+        if (playerData.length > 0) {
             PlayerFlagDataManager.generateData(playerData);
         }
-        File[] regionConfigs = new File(pxrDir.resolve("regions") + fs).listFiles();
-        if (regionConfigs != null && regionConfigs.length > 0) {
+        File[] regionConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("regions") + fs));
+        if (regionConfigs.length > 0) {
             RegionManager.generateRegions(regionConfigs);
         }
+    }
+
+    private static File[] getAllFilesInDirectory(File direc) {
+        File[] allFiles = direc.listFiles();
+        if (allFiles != null && allFiles.length > 0) {
+            List<File> toReturn = new ArrayList<>();
+            for (File i : allFiles) {
+                if (i.isFile()) {
+                    toReturn.add(i);
+                } else if (i.isDirectory()) {
+                    toReturn.addAll(fileToList(getAllFilesInDirectory(i)));
+                }
+            }
+            return toReturn.toArray(new File[0]);
+        } else {
+            return new File[0];
+        }
+    }
+
+    private static List<File> fileToList(File[] f) {
+        List<File> r = new ArrayList<>(f.length);
+        for (int i = 0; i < f.length; i++) {
+            r.add(i, f[i]);
+        }
+        return r;
     }
 }
