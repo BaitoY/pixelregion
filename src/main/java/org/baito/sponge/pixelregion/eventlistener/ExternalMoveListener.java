@@ -7,12 +7,12 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.baito.sponge.pixelregion.Main;
+import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
 import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
 import org.baito.sponge.pixelregion.playerdata.PlayerLink;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.serializer.TextSerializers;
-import org.spongepowered.api.world.World;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public class ExternalMoveListener {
                 e.setCooldown(500 - e.pokemon.getPokemonData().getStat(StatsType.Speed));
                 move.timeLastUsed = e.pokemon.world.getTotalWorldTime();
                 if (Math.floor(Math.random() * 100) < pl.region.sweetScentData.chance) {
-                    if (pl.region.sweetScentData.metConditions((Player) e.player, e, false, (World)e.player.world)) {
+                    if (EncounterDataManager.metConditions((Player) e.player, e, false, pl.region.sweetScentData)) {
                         pl.region.sweetScentData.getDED().execute((Player) e.player);
                     }
                 } else {
@@ -77,7 +77,7 @@ public class ExternalMoveListener {
                 e.setCooldown(500 - e.pokemon.getPokemonData().getStat(StatsType.Speed));
                 move.timeLastUsed = e.pokemon.world.getTotalWorldTime();
                 if (Math.floor(Math.random() * 100) < pl.region.headbuttData.chance) {
-                    if (pl.region.headbuttData.metConditions((Player) e.player, e, true, (World)e.player.world)) {
+                    if (EncounterDataManager.metConditions((Player) e.player, e, true, pl.region.headbuttData)) {
                         pl.region.headbuttData.getDED().execute((Player) e.player);
                     }
                 } else {
@@ -94,7 +94,7 @@ public class ExternalMoveListener {
     public void forage(ExternalMoveEvent.ForageMove e) {
         PlayerLink pl = PlayerLinkManager.getLink((Player) e.player);
         if (pl.inRegion && pl.region != null && pl.region.forageData != null) {
-            if (pl.region.forageData.metConditions((Player)e.player, e)) {
+            if (EncounterDataManager.metConditions((Player) e.player, e, pl.region.forageData)) {
                 if (Math.floor(Math.random() * 100) < pl.region.forageData.chance) {
                     ForageData.ForageItems i = pl.region.forageData.getForageItem();
                     e.setForagedItem(i.item);

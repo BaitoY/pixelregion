@@ -11,7 +11,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.world.World;
 
 public class EncounterData {
     public String name;
@@ -44,44 +43,6 @@ public class EncounterData {
         } catch (NullPointerException e) {
             e.printStackTrace();
         }
-    }
-
-    public boolean metConditions(Player plr, World world) {
-        if (conditions == null) return true;
-        for (Conditions i : conditions) {
-            switch (i.type) {
-                case "weather":
-                    for (String w : i.weather) {
-                        if (!contains(i.weather, world.getWeather().getName())) return false;
-                    }
-                    break;
-                case "time":
-                    int cTime = ((int) world.getProperties().getWorldTime() % 24000);
-                    if (!(cTime >= i.time[0] && cTime <= i.time[1])) return false;
-                    break;
-                case "ontop":
-                    String cBlockO = world.
-                            getBlock(plr.getPosition().getFloorX(),
-                                    plr.getPosition().getFloorY() - 1, plr.getPosition().getFloorZ()).getType().getName();
-                    if (!contains(i.ontop, cBlockO)) return false;
-                    break;
-
-                case "inside":
-                    String cBlockI = world.
-                            getBlock(plr.getPosition().getFloorX(),
-                                    plr.getPosition().getFloorY(), plr.getPosition().getFloorZ()).getType().getName();
-                    if (!contains(i.inside, cBlockI)) return false;
-                    break;
-            }
-        }
-        return true;
-    }
-
-    private boolean contains(String[] arr, String s) {
-        for (String i : arr) {
-            if (i.equals(s)) return true;
-        }
-        return false;
     }
 
     public Encounters.DeepEncounterData getDED() {

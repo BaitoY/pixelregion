@@ -1,12 +1,8 @@
 package org.baito.sponge.pixelregion.encounterdata.external;
 
-import com.pixelmonmod.pixelmon.api.events.ExternalMoveEvent;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.spongepowered.api.block.BlockState;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.world.World;
 
 public class ExternalEncounterData {
     public String name;
@@ -125,35 +121,5 @@ public class ExternalEncounterData {
             }
             return null;
         }
-    }
-
-    public boolean metConditions(Player plr, ExternalMoveEvent.PreparingMove e, boolean headButt, World world) {
-        if (conditions == null) return true;
-        for (ExternalConditions i : conditions) {
-            switch (i.type) {
-                case "weather":
-                    for (String w : i.weather) {
-                        if (!contains(i.weather, world.getWeather().getName())) return false;
-                    }
-                    break;
-                case "time":
-                    int cTime = ((int) world.getProperties().getWorldTime() % 24000);
-                    if (!(cTime >= i.time[0] && cTime <= i.time[1])) return false;
-                    break;
-                case "blocks":
-                    if (!headButt) continue;
-                    if (!contains(i.blocks, (((BlockState) e.pokemon.world.getBlockState(e.getTarget().getBlockPos())).getType().getName())))
-                        return false;
-                    break;
-            }
-        }
-        return true;
-    }
-
-    private boolean contains(String[] arr, String s) {
-        for (String i : arr) {
-            if (i.equals(s)) return true;
-        }
-        return false;
     }
 }

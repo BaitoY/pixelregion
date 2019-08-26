@@ -1,6 +1,7 @@
 package org.baito.sponge.pixelregion.eventlistener;
 
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
+import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
 import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
 import org.baito.sponge.pixelregion.playerdata.PlayerLink;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
@@ -58,7 +59,7 @@ public class LoginMoveListener {
             EncounterData toUse = null;
             for (EncounterData i : PlayerLinkManager.getLink(e).region.encounterData) {
                 if (Math.floor(Math.random() * 101) < i.tickChance) {
-                    if (i.metConditions(e, e.getWorld())) {
+                    if (EncounterDataManager.metConditions(e, e.getWorld(), i)) {
                         toUse = i;
                         break;
                     }

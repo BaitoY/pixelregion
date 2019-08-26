@@ -2,6 +2,9 @@ package org.baito.sponge.pixelregion;
 
 import com.google.inject.Inject;
 import com.pixelmonmod.pixelmon.Pixelmon;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.ItemStack;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
 import org.baito.sponge.pixelregion.eventlistener.ExternalMoveListener;
@@ -32,6 +35,7 @@ import java.util.concurrent.TimeUnit;
         name = "Pixelregion",
         version = "1.0-SNAPSHOT"
 )
+
 public class Main {
     @Inject
     private Logger logger;
@@ -51,13 +55,10 @@ public class Main {
             registerCommands();
             Sponge.getEventManager().registerListeners(this, new LoginMoveListener());
             Pixelmon.EVENT_BUS.register(new ExternalMoveListener());
-            Task.builder().interval(50, TimeUnit.MILLISECONDS).execute(new Runnable() {
-                @Override
-                public void run() {
-                    LoginMoveListener.interval++;
-                    if (LoginMoveListener.interval > 20) {
-                        LoginMoveListener.interval = 0;
-                    }
+            Task.builder().interval(50, TimeUnit.MILLISECONDS).execute(() -> {
+                LoginMoveListener.interval++;
+                if (LoginMoveListener.interval > 20) {
+                    LoginMoveListener.interval = 0;
                 }
             }).submit(this);
             logger.info("Pixelregion has been successfully enabled!");
@@ -164,6 +165,9 @@ public class Main {
                         GenericArguments.optional(GenericArguments.string(Text.of("sub")))
                 )
                 .executor((CommandSource src, CommandContext args) -> {
+                    ItemStack is = ((EntityPlayer)src).getItemStackFromSlot(EntityEquipmentSlot.MAINHAND);
+                    ItemStack sn = ((EntityPlayer)src).getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
+
                     return CommandResult.success();
                 }).build(), "pxre");
     }

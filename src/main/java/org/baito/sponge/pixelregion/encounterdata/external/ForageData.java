@@ -1,56 +1,15 @@
 package org.baito.sponge.pixelregion.encounterdata.external;
 
-import com.pixelmonmod.pixelmon.api.events.ExternalMoveEvent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.block.BlockState;
-import org.spongepowered.api.entity.living.player.Player;
 
 public class ForageData {
     public String name;
     public int chance;
     public ForageConditions[] conditions;
     public ForageItems[] items;
-
-    public boolean metConditions(Player plr, ExternalMoveEvent.ForageMove e) {
-        if (conditions == null) return true;
-        for (ForageConditions i : conditions) {
-            switch (i.type) {
-                case "weather":
-                    for (String w : i.weather) {
-                        if (!contains(i.weather, Sponge.getServer().getWorld(Sponge.getServer().
-                                getDefaultWorldName()).get().getWeather().getName())) return false;
-                    }
-                    break;
-                case "time":
-                    int cTime = ((int) Sponge.getServer().getWorld(Sponge.getServer().getDefaultWorldName()).get().getProperties().getWorldTime() % 24000);
-                    if (!(cTime >= i.time[0] && cTime <= i.time[1])) return false;
-                    break;
-                case "blocks":
-                    if (!contains(i.blocks, (((BlockState) e.pokemon.world.getBlockState(e.getTarget().getBlockPos())).getType().getName())))
-                        return false;
-                    break;
-                case "types":
-                    if (!contains(i.types, e.pokemon.getBaseStats().types.get(0).toString().toLowerCase())) {
-                        if (e.pokemon.getBaseStats().types.size() == 2) {
-                            if (!contains(i.types, e.pokemon.getBaseStats().types.get(1).toString().toLowerCase())) {
-                                return false;
-                            } else {
-                                break;
-                            }
-                        } else {
-                            return false;
-                        }
-                    } else {
-                        break;
-                    }
-            }
-        }
-        return true;
-    }
 
     private boolean contains(String[] arr, String s) {
         for (String i : arr) {
