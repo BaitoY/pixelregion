@@ -106,7 +106,7 @@ public class Config {
         }
         File[] forageConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("foragedata") + fs));
         if (forageConfigs.length > 0) {
-            EncounterDataManager.generateForagedata(forageConfigs);
+            EncounterDataManager.generateForageData(forageConfigs);
         }
         File[] eventConfigs = new File(pxrDir.resolve("events") + fs).listFiles(File::isFile);
         if (eventConfigs != null && eventConfigs.length > 0) {

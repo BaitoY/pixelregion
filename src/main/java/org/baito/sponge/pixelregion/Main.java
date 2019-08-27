@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
+import org.baito.sponge.pixelregion.eventflags.EventFlagManager;
 import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
 import org.baito.sponge.pixelregion.eventlistener.ExternalMoveListener;
 import org.baito.sponge.pixelregion.eventlistener.LoginMoveListener;
@@ -167,7 +168,7 @@ public class Main {
                 .executor((CommandSource src, CommandContext args) -> {
                     ItemStack is = ((EntityPlayer)src).getItemStackFromSlot(EntityEquipmentSlot.MAINHAND);
                     ItemStack sn = ((EntityPlayer)src).getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
-
+                    src.sendMessage(Text.of(EventFlagManager.NBTMatch(is.serializeNBT(), sn.serializeNBT())));
                     return CommandResult.success();
                 }).build(), "pxre");
     }

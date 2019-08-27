@@ -7,7 +7,6 @@ import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.world.World;
 
 import java.io.File;
 import java.util.HashMap;
@@ -32,7 +31,7 @@ public class EncounterDataManager {
         }
     }
 
-    public static void generateForagedata(File[] f) {
+    public static void generateForageData(File[] f) {
         for (int i = 0; i < f.length; i++) {
             ForageData ed = new ForageData(Config.readConfig(f[i]));
             forageData.put(ed.name, ed);
@@ -60,28 +59,28 @@ public class EncounterDataManager {
         return null;
     }
 
-    public static boolean metConditions(Player plr, World world, EncounterData c) {
+    public static boolean metConditions(Player plr, EncounterData c) {
         if (c.conditions == null) return true;
         for (EncounterData.Conditions i : c.conditions) {
             switch (i.type) {
                 case "weather":
                     for (String w : i.weather) {
-                        if (!contains(i.weather, world.getWeather().getName())) return false;
+                        if (!contains(i.weather, plr.getWorld().getWeather().getName())) return false;
                     }
                     break;
                 case "time":
-                    int cTime = ((int) world.getProperties().getWorldTime() % 24000);
+                    int cTime = ((int) plr.getWorld().getProperties().getWorldTime() % 24000);
                     if (!(cTime >= i.time[0] && cTime <= i.time[1])) return false;
                     break;
                 case "ontop":
-                    String cBlockO = world.
+                    String cBlockO = plr.getWorld().
                             getBlock(plr.getPosition().getFloorX(),
                                     plr.getPosition().getFloorY() - 1, plr.getPosition().getFloorZ()).getType().getName();
                     if (!contains(i.ontop, cBlockO)) return false;
                     break;
 
                 case "inside":
-                    String cBlockI = world.
+                    String cBlockI = plr.getWorld().
                             getBlock(plr.getPosition().getFloorX(),
                                     plr.getPosition().getFloorY(), plr.getPosition().getFloorZ()).getType().getName();
                     if (!contains(i.inside, cBlockI)) return false;

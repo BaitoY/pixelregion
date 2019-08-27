@@ -7,6 +7,7 @@ import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import org.baito.sponge.pixelregion.Config;
 import org.spongepowered.api.entity.living.player.Player;
 
@@ -34,42 +35,17 @@ public class EventFlagManager {
         if (one.getKeySet().containsAll(two.getKeySet())) {
             Set<String> set = two.getKeySet();
             for (String e : set) {
-                switch (two.getTagId(e)) {
-                    case 1: // BYTE
-                        if (two.getByte(e) != one.getByte(e)) return false;
-                        break;
-                    case 2: // SHORT
-                        if (two.getShort(e) != one.getByte(e)) return false;
-                        break;
-                    case 3: // INT
-                        if (two.getInteger(e) != one.getInteger(e)) return false;
-                        break;
-                    case 4: // LONG
-                        if (two.getLong(e) != one.getLong(e)) return false;
-                        break;
-                    case 5: // FLOAT
-                        if (two.getFloat(e) != one.getFloat(e)) return false;
-                        break;
-                    case 6: // DOUBLE
-                        if (two.getDouble(e) != one.getDouble(e)) return false;
-                        break;
-                    case 7: // BYTE ARRAY
-                        if (!Arrays.equals(two.getByteArray(e), one.getByteArray(e))) return false;
-                        break;
-                    case 8: // STRING
-                        if (!two.getString(e).equals(one.getString(e))) return false;
-                        break;
-                    case 9: // LIST
-                        for (int i = 0; i < two.getTagList(e, 9).tagCount(); i++) {
-                            if (!NBTMatch(two.getTagList(e, 9).getCompoundTagAt(i), one.getTagList(e, 9).getCompoundTagAt(i))) return false;
-                        }
-                        break;
-                    case 10: // NBT COMPOUND
-                        if (!NBTMatch(one.getCompoundTag(e), two.getCompoundTag(e))) return false;
-                        break;
-                    case 11: // INT ARRAY
-                        if (!Arrays.equals(two.getIntArray(e), one.getIntArray(e))) return false;
-                        break;
+                if (one.getTagId(e) != two.getTagId(e)) {
+                    return false;
+                }
+                if (two.getTag(e) instanceof NBTTagCompound) {
+                    if (!NBTMatch(one.getCompoundTag(e), one.getCompoundTag(e))) return false;
+                } else if (two.getTag(e) instanceof NBTTagList) {
+                    for (int i = 0; i < two.getTagList(e, two.getTagId(e)).tagCount(); i++) {
+                        if (!two.getTagList(e, two.getTagId(e)).get(i).equals(one.getTagList(e, one.getTagId(e)).get(i))) return false;
+                    }
+                } else {
+                    if (!two.getTag(e).equals(one.getTag(e))) return false;
                 }
             }
         } else {

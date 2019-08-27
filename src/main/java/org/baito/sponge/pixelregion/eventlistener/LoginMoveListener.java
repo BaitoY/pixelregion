@@ -59,7 +59,7 @@ public class LoginMoveListener {
             EncounterData toUse = null;
             for (EncounterData i : PlayerLinkManager.getLink(e).region.encounterData) {
                 if (Math.floor(Math.random() * 101) < i.tickChance) {
-                    if (EncounterDataManager.metConditions(e, e.getWorld(), i)) {
+                    if (EncounterDataManager.metConditions(e, i)) {
                         toUse = i;
                         break;
                     }
