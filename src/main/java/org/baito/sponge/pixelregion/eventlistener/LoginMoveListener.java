@@ -57,10 +57,11 @@ public class LoginMoveListener {
     public static void handleEncounter(Player e) {
         if (PlayerLinkManager.getLink(e).region != null && PlayerLinkManager.getLink(e).region.encounterData != null) {
             EncounterData toUse = null;
-            for (EncounterData i : PlayerLinkManager.getLink(e).region.encounterData) {
-                if (Math.floor(Math.random() * 101) < i.tickChance) {
-                    if (EncounterDataManager.metConditions(e, i)) {
-                        toUse = i;
+            for (String i : PlayerLinkManager.getLink(e).region.encounterData) {
+                EncounterData ed = EncounterDataManager.getData(i);
+                if (Math.floor(Math.random() * 101) < ed.tickChance) {
+                    if (EncounterDataManager.metConditions(e, ed)) {
+                        toUse = ed;
                         break;
                     }
                 }

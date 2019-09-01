@@ -1,15 +1,21 @@
 package org.baito.sponge.pixelregion.encounterdata;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
+import com.pixelmonmod.pixelmon.api.storage.StoragePosition;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipant;
 import com.pixelmonmod.pixelmon.battles.controller.participants.WildPixelmonParticipant;
+import com.pixelmonmod.pixelmon.config.PixelmonConfig;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumBossMode;
+import com.pixelmonmod.pixelmon.listener.RepelHandler;
 import net.minecraft.entity.player.EntityPlayerMP;
+import org.baito.sponge.pixelregion.Utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.Player;
 
 public class EncounterData {
@@ -62,8 +68,9 @@ public class EncounterData {
         public String type;
         public String[] weather = null;
         public int[] time = null;
-        public String[] ontop = null;
-        public String[] inside = null;
+        public BlockState[] ontop = null;
+        public BlockState[] inside = null;
+        public boolean useVar;
 
         Conditions(JSONObject j, String name) {
             try {
@@ -90,19 +97,21 @@ public class EncounterData {
                         if (!j.has("blocks")) {
                             throw new NullPointerException("Encounter data " + name + " has no \"blocks\" array for condition ontop! Skipping...");
                         }
-                        ontop = new String[j.getJSONArray("blocks").length()];
-                        for (int i = 0; i < j.getJSONArray("blocks").length(); i++) {
-                            ontop[i] = j.getJSONArray("blocks").getString(i);
+                        ontop = new BlockState[j.getJSONArray("blocks").length()];
+                        for (int i = 0; i < ontop.length; i++) {
+                            ontop[i] = Utils.stringToBlock(j.getJSONArray("blocks").getString(i));
                         }
+                        useVar = j.has("useVariant") && j.getBoolean("useVariant");
                         break;
                     case "inside":
                         if (!j.has("blocks")) {
                             throw new NullPointerException("Encounter data " + name + " has no \"blocks\" array for condition inside! Skipping...");
                         }
-                        inside = new String[j.getJSONArray("blocks").length()];
-                        for (int i = 0; i < j.getJSONArray("blocks").length(); i++) {
-                            inside[i] = j.getJSONArray("blocks").getString(i);
+                        inside = new BlockState[j.getJSONArray("blocks").length()];
+                        for (int i = 0; i < inside.length; i++) {
+                            inside[i] = Utils.stringToBlock(j.getJSONArray("blocks").getString(i));
                         }
+                        useVar = j.has("useVariant") && j.getBoolean("useVariant");
                         break;
                 }
             } catch (NullPointerException e) {
@@ -126,9 +135,17 @@ public class EncounterData {
                     String[] r = {time[0] + "", time[1] + ""};
                     return r;
                 case "ontop":
-                    return ontop.clone();
+                    String[] ret = new String[ontop.length];
+                    for (int i = 0; i < ret.length; i++) {
+                        ret[i] = ontop[i].getType().getName();
+                    }
+                    return ret;
                 case "inside":
-                    return inside.clone();
+                    ret = new String[inside.length];
+                    for (int i = 0; i < ret.length; i++) {
+                        ret[i] = inside[i].getType().getName();
+                    }
+                    return ret;
             }
             return null;
         }
@@ -159,16 +176,18 @@ public class EncounterData {
                 if (!j.has("levelMin") || !j.has("levelMax")) {
                     throw new NullPointerException("Encounter data " + name + " has no global default levels! Skipping...");
                 }
-                defaultLevels[0] = j.has("levelMin") ? Math.max(j.getInt("levelMin"), 1) : null;
-                defaultLevels[1] = j.has("levelMax") ? Math.min(j.getInt("levelMax"), 100) : null;
+                defaultLevels[0] = Math.max(j.getInt("levelMin"), 1);
+                defaultLevels[1] = Math.min(j.getInt("levelMax"), 100);
                 if (!j.has("shinyChance")) {
-                    throw new NullPointerException("Encounter data " + name + " has no global default shiny chance! Skipping...");
+                    defaultShiny = (int) PixelmonConfig.shinyRate;
+                } else {
+                    defaultShiny =j.getInt("shinyChance");
                 }
-                defaultShiny = j.has("shinyChance") ? j.getInt("shinyChance") : null;
                 if (!j.has("bossChance")) {
-                    throw new NullPointerException("Encounter data " + name + " has no global default boss chance! Skipping...");
+                    defaultBoss = (int) PixelmonConfig.bossSpawnChance;
+                } else {
+                    defaultBoss = j.getInt("bossChance");
                 }
-                defaultBoss = j.has("bossChance") ? j.getInt("bossChance") : null;
                 if (!j.has("pokemon")) {
                     throw new NullPointerException("Encounter data " + name + " has no Pokemon encounters! Skipping...");
                 }
@@ -193,11 +212,11 @@ public class EncounterData {
                     if (!j.has("species")) {
                         throw new NullPointerException("Encounter data " + name + " has no species in a Pokemon field! Skipping...");
                     }
-                    species = j.has("species") ? toArray(j.getJSONArray("species")) : null;
+                    species = toArray(j.getJSONArray("species"));
                     if (!j.has("weight")) {
                         throw new NullPointerException("Encounter data " + name + " has no weight in a Pokemon field! Skipping...");
                     }
-                    weight = j.has("weight") ? (double) j.getNumber("weight") : null;
+                    weight = (double) j.getNumber("weight");
                     deepLevels[0] = j.has("levelMin") ? j.getInt("levelMin") : def.defaultLevels[0];
                     deepLevels[1] = j.has("levelMax") ? j.getInt("levelMax") : def.defaultLevels[1];
                     deepShiny = j.has("shinyChance") ? j.getInt("shinyChance") : def.defaultShiny;
@@ -219,17 +238,22 @@ public class EncounterData {
                 if (BattleRegistry.getBattle((EntityPlayerMP)plr) != null) {
                     return;
                 }
+                int lvl = ((int) (Math.floor(Math.random() * (deepLevels[1] - deepLevels[0])) + deepLevels[0]) + 1);
+                if (RepelHandler.hasRepel(((EntityPlayerMP)plr))) {
+                    Pokemon slotOne = Pixelmon.storageManager.getPokemon((EntityPlayerMP) plr, new StoragePosition(-1, 0));
+                    if (slotOne != null && slotOne.getLevel() >= lvl) {
+                        return;
+                    }
+                }
                 StringBuilder sb = new StringBuilder();
                 sb.append(species[(int) Math.floor(Math.random() * species.length)]);
-                sb.append(" lvl:" + ((int) (Math.floor(Math.random() * (deepLevels[1] - deepLevels[0])) + deepLevels[0]) + 1));
+                sb.append(" lvl:" + lvl);
                 int shinyBonus = 0;
                 if (Pixelmon.storageManager.getParty(plr.getUniqueId()).getShinyCharm().isActive()) {
                     shinyBonus = 3;
                 }
                 if (Math.floor(Math.random() * Math.max(deepShiny - shinyBonus, 1)) == 0) {
                     sb.append(" s");
-                } else {
-                    sb.append(" !s");
                 }
                 if (Math.floor(Math.random() * deepBoss) == 0) {
                     startBattle(plr, sb.toString(), EnumBossMode.getRandomMode());
@@ -275,7 +299,7 @@ public class EncounterData {
             s.append("\n  &a= Pokemon: ");
             for (int pkmn = 0; pkmn < encounterData.deepEncounters[pl].species.length; pkmn++) {
                 String pokemon = encounterData.deepEncounters[pl].species[pkmn];
-                if (pkmn == encounterData.deepEncounters[pl].species.length) {
+                if (pkmn == encounterData.deepEncounters[pl].species.length-1) {
                     s.append("&f").append(pokemon);
                 } else {
                     s.append("&f").append(pokemon).append(", ");

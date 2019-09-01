@@ -47,6 +47,9 @@ dependencies {
     compile 'org.spongepowered:spongeapi:7.1.0'
     compile group: 'org.json', name: 'json', version: '20180813'
     shadow fileTree(dir: 'libraries', include: ['*'])
+    compile ('org.spongepowered:spongecommon:7.0.0-SNAPSHOT:dev') {
+        exclude group: 'org.spongepowered', module: 'testplugins'
+    }
 }
 
 shadowJar {

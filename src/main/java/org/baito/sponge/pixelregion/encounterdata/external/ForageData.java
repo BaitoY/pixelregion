@@ -2,8 +2,13 @@ package org.baito.sponge.pixelregion.encounterdata.external;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.NBTException;
+import net.minecraft.nbt.NBTTagCompound;
+import org.baito.sponge.pixelregion.Utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.spongepowered.api.block.BlockState;
 
 public class ForageData {
     public String name;
@@ -65,7 +70,8 @@ public class ForageData {
         public String type;
         public String[] weather = null;
         public int[] time = null;
-        public String[] blocks = null;
+        public BlockState[] blocks = null;
+        public boolean useVar;
         public String[] types = null;
 
         ForageConditions(JSONObject j, String name) {
@@ -93,7 +99,11 @@ public class ForageData {
                         if (!j.has("blocks")) {
                             throw new NullPointerException("Forage data " + name + " has no \"blocks\" array for condition blocks! Skipping...");
                         }
-                        blocks = toArray(j.getJSONArray("blocks"));
+                        blocks = new BlockState[j.getJSONArray("blocks").length()];
+                        for (int i = 0; i < blocks.length; i++) {
+                            blocks[i] = Utils.stringToBlock(j.getJSONArray("blocks").getString(i));
+                        }
+                        useVar = j.has("useVariant") && j.getBoolean("useVariant");
                         break;
                     case "types":
                         if (!j.has("types")) {
@@ -118,14 +128,25 @@ public class ForageData {
 
     public class ForageItems {
         public ItemStack item;
+        public NBTTagCompound nbt;
+        int quantity;
         public double weight;
 
         ForageItems(JSONObject j, String name) {
             if (Item.getByNameOrId(j.getString("item")) == null) {
                 throw new NullPointerException("An item in forage data \"" + name + "\" is incorrect! Skipping...");
             } else {
-                item = new ItemStack(Item.getByNameOrId(j.getString("item")), 1);
-                weight = j.getDouble("weight");
+                try {
+                    quantity = j.has("quantity") ? j.getInt("quantity") : 1;
+                    item = new ItemStack(Item.getByNameOrId(j.getString("item")), quantity);
+                    nbt = j.has("nbt") ? JsonToNBT.getTagFromJson(j.getString("nbt")) : null;
+                    if (nbt != null) {
+                        item.setTagCompound(nbt);
+                    }
+                    weight = j.getDouble("weight");
+                } catch (NBTException e) {
+                    e.printStackTrace();;
+                }
             }
         }
     }

@@ -82,7 +82,7 @@ public class Config {
         StringBuilder sb = new StringBuilder();
         try {
             BufferedReader br = new BufferedReader(new FileReader(conf));
-            String line = null;
+            String line;
             String ls = System.getProperty("line.separator");
             while ((line = br.readLine()) != null) {
                 sb.append(line);
@@ -98,26 +98,32 @@ public class Config {
     public static void load() {
         File[] encConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("encounterdata") + fs));
         if (encConfigs.length > 0) {
+            ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("Encounter data configs loaded");
             EncounterDataManager.generateEncounters(encConfigs);
         }
         File[] extMoveEncConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("externalencounterdata") + fs));
         if (extMoveEncConfigs.length > 0) {
+            ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("External encounter data configs loaded");
             EncounterDataManager.generateExtEncounters(extMoveEncConfigs);
         }
         File[] forageConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("foragedata") + fs));
         if (forageConfigs.length > 0) {
+            ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("Forage loot configs loaded");
             EncounterDataManager.generateForageData(forageConfigs);
         }
         File[] eventConfigs = new File(pxrDir.resolve("events") + fs).listFiles(File::isFile);
         if (eventConfigs != null && eventConfigs.length > 0) {
+            ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("Event configs loaded");
             EventFlagManager.generateEvents(eventConfigs);
         }
-        File[] playerData = getAllFilesInDirectory(new File(pxrDir.resolve("events").resolve("playerdata") + fs));
-        if (playerData.length > 0) {
+        File[] playerData = new File(pxrDir.resolve("events").resolve("playerdata") + fs).listFiles();
+        if (playerData != null && playerData.length > 0) {
+            ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("Player data configs loaded");
             PlayerFlagDataManager.generateData(playerData);
         }
         File[] regionConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("regions") + fs));
         if (regionConfigs.length > 0) {
+            ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("Region configs loaded");
             RegionManager.generateRegions(regionConfigs);
         }
     }

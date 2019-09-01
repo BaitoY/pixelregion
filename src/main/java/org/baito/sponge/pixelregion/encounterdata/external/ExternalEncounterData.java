@@ -1,8 +1,10 @@
 package org.baito.sponge.pixelregion.encounterdata.external;
 
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
+import org.baito.sponge.pixelregion.Utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.spongepowered.api.block.BlockState;
 
 public class ExternalEncounterData {
     public String name;
@@ -54,7 +56,8 @@ public class ExternalEncounterData {
         public String type;
         public String[] weather = null;
         public int[] time = null;
-        public String[] blocks = null;
+        public BlockState[] blocks = null;
+        public boolean useVar;
 
         ExternalConditions(JSONObject j, String name) {
             try {
@@ -81,7 +84,11 @@ public class ExternalEncounterData {
                         if (!j.has("blocks")) {
                             throw new NullPointerException("Encounter data " + name + " has no \"blocks\" array for condition blocks! Skipping...");
                         }
-                        blocks = toArray(j.getJSONArray("blocks"));
+                        blocks = new BlockState[j.getJSONArray("blocks").length()];
+                        for (int i = 0; i < blocks.length; i++) {
+                            blocks[i] = Utils.stringToBlock(j.getJSONArray("blocks").getString(i));
+                        }
+                        useVar = j.has("useVariant") && j.getBoolean("useVariant");
                         break;
                 }
             } catch (NullPointerException e) {
@@ -105,7 +112,11 @@ public class ExternalEncounterData {
                     String[] r = {time[0] + "", time[1] + ""};
                     return r;
                 case "blocks":
-                    return blocks.clone();
+                    String[] ret = new String[blocks.length];
+                    for (int i = 0; i < ret.length; i++) {
+                        ret[i] = blocks[i].getType().getName();
+                    }
+                    return ret;
             }
             return null;
         }

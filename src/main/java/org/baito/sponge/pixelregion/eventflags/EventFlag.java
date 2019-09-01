@@ -1,14 +1,20 @@
 package org.baito.sponge.pixelregion.eventflags;
 
+import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
+import org.baito.sponge.pixelregion.Utils;
 import org.json.JSONObject;
+import org.spongepowered.api.block.BlockState;
 
 public class EventFlag {
     public String name;
     public FlagCondition condition;
     public FlagTrigger trigger;
+    public FlagEffect effects;
 
     EventFlag(JSONObject j) {
         try {
@@ -22,6 +28,9 @@ public class EventFlag {
             if (j.has("trigger")) {
                 trigger = new FlagTrigger(j.getJSONObject("trigger"));
             }
+            if (j.has("effects")) {
+                    effects = new FlagEffect(j.getJSONObject("effects"));
+            }
         } catch (NullPointerException e) {
             e.printStackTrace();
         }
@@ -29,7 +38,7 @@ public class EventFlag {
 
     public class FlagCondition {
         public String[] enabledFlags;
-        public String[] disabledFlag;
+        public String[] disabledFlags;
         public PartyCondition partyCondition;
         public WorldCondition worldCondition;
 
@@ -40,7 +49,7 @@ public class EventFlag {
                 if (j.has("flagConditions")) {
                     JSONObject fc = j.getJSONObject("flagConditions");
                     if (fc.has("disabled")) {
-                        disabledFlag = fc.getJSONArray("disabled").toList().toArray(new String[0]);
+                        disabledFlags = fc.getJSONArray("disabled").toList().toArray(new String[0]);
                     }
                     if (fc.has("enabled")) {
                         enabledFlags = fc.getJSONArray("enabled").toList().toArray(new String[0]);
@@ -86,8 +95,9 @@ public class EventFlag {
         public class WorldCondition {
             public int[] TIME;
             public String[] WEATHER;
-            public String[] BLOCKS;
+            public BlockState[] BLOCKS;
             public boolean onBlock;
+            public boolean useVar;
 
             WorldCondition(JSONObject j) {
                 if (j.has("times")) {
@@ -99,11 +109,19 @@ public class EventFlag {
                     WEATHER = j.getJSONArray("weather").toList().toArray(new String[0]);
                 }
                 if (j.has("inBlocks")) {
-                    BLOCKS = j.getJSONArray("inBlocks").toList().toArray(new String[0]);
+                    BLOCKS = new BlockState[j.getJSONArray("inBlocks").length()];
+                    for (int i = 0; i < BLOCKS.length; i++) {
+                        BLOCKS[i] = Utils.stringToBlock(j.getJSONArray("inBlocks").getString(i));
+                    }
                     onBlock = false;
+                    useVar = j.has("useVariant") && j.getBoolean("useVariant");
                 } else if (j.has("onBlocks")) {
-                    BLOCKS = j.getJSONArray("onBlocks").toList().toArray(new String[0]);
+                    BLOCKS = new BlockState[j.getJSONArray("onBlocks").length()];
+                    for (int i = 0; i < BLOCKS.length; i++) {
+                        BLOCKS[i] = Utils.stringToBlock(j.getJSONArray("onBlocks").getString(i));
+                    }
                     onBlock = true;
+                    useVar = j.has("useVariant") && j.getBoolean("useVariant");
                 } else {
                     BLOCKS = null;
                 }
@@ -113,21 +131,27 @@ public class EventFlag {
     }
 
     public class FlagTrigger {
+        public TriggerEnum mode;
+
         public String interactItem;
         public NBTTagCompound nbt;
+        public boolean consumeOnUse;
 
-        public TriggerEnum mode;
+        public String interactBlock;
 
         FlagTrigger(JSONObject j) {
             try {
                 if (j.has("useItem")) {
                     mode = TriggerEnum.ITEM;
                     interactItem = j.getJSONObject("useItem").getString("id");
-                    nbt = JsonToNBT.getTagFromJson(j.getJSONObject("useItem").getString("nbt"));
+                    nbt = j.getJSONObject("useItem").has("nbt") ? JsonToNBT.getTagFromJson(j.getJSONObject("useItem").getString("nbt")) : null;
+                    consumeOnUse = j.getJSONObject("useItem").has("consume") && j.getJSONObject("useItem").getBoolean("consume");
                 } else if (j.has("interact")) {
                     mode = TriggerEnum.INTERACT;
                 } else if (j.has("interactBlock")) {
                     mode = TriggerEnum.INTERACTBLOCK;
+                    nbt = j.getJSONObject("interactBlock").has("nbt") ? JsonToNBT.getTagFromJson(j.getJSONObject("interactBlock").getString("nbt")) : null;
+                    interactBlock = j.getJSONObject("interactBlock").getString("id");
                 }
             } catch (NBTException e) {
                 e.printStackTrace();
@@ -136,5 +160,47 @@ public class EventFlag {
 
     }
 
-}
+    public class FlagEffect {
+        public String[] enableFlags;
+        public String[] disableFlags;
+        public String[] toggleFlags;
+        public EncounterInfo battle;
+        public EncounterInfo spawn;
+        public ItemStack item;
+        public String moveTeach;
+        public PokemonSpec editPoke;
+        public String[] command;
 
+        FlagEffect(JSONObject j) {
+            try {
+                enableFlags = j.has("enableFlags") ? j.getJSONArray("enableFlags").toList().toArray(new String[0]) : null;
+                disableFlags = j.has("disableFlags") ? j.getJSONArray("disableFlags").toList().toArray(new String[0]) : null;
+                toggleFlags = j.has("toggleFlags") ? j.getJSONArray("toggleFlags").toList().toArray(new String[0]) : null;
+                battle = j.has("battle") ? new EncounterInfo(j.getJSONObject("battle")) : null;
+                spawn = j.has("spawn") ? new EncounterInfo(j.getJSONObject("spawn")) : null;
+                if (j.has("giveItem")) {
+                    JSONObject itemInfo = j.getJSONObject("giveItem");
+                    if (!itemInfo.has("id")) {
+                        throw new NullPointerException("An event effect has no ID for giveItem! Skipping...");
+                    }
+                    if (Item.getByNameOrId(itemInfo.getString("id")) == null) {
+                        throw new NullPointerException("No item with ID " + itemInfo.getString("id") + " exists! Skipping");
+                    }
+                    ItemStack e = new ItemStack(Item.getByNameOrId(itemInfo.getString("id")));
+                    NBTTagCompound nbt = new NBTTagCompound();
+                    try {
+                        nbt = j.has("nbt") ? JsonToNBT.getTagFromJson(j.getString("nbt")) : null;
+                    } catch (NBTException ex) {
+                        ex.printStackTrace();
+                    }
+                    e.serializeNBT().merge(nbt);
+                    item = e;
+                }
+                command = j.has("runCommand") ? j.getJSONArray("runCommand").toList().toArray(new String[0]) : null;
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+}

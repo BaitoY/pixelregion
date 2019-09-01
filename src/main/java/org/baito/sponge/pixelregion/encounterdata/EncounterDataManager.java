@@ -4,6 +4,7 @@ import com.pixelmonmod.pixelmon.api.events.ExternalMoveEvent;
 import org.baito.sponge.pixelregion.Config;
 import org.baito.sponge.pixelregion.encounterdata.external.ExternalEncounterData;
 import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
+import org.baito.sponge.pixelregion.Utils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.Player;
@@ -73,17 +74,20 @@ public class EncounterDataManager {
                     if (!(cTime >= i.time[0] && cTime <= i.time[1])) return false;
                     break;
                 case "ontop":
-                    String cBlockO = plr.getWorld().
-                            getBlock(plr.getPosition().getFloorX(),
-                                    plr.getPosition().getFloorY() - 1, plr.getPosition().getFloorZ()).getType().getName();
-                    if (!contains(i.ontop, cBlockO)) return false;
+                    BlockState blockState = plr.getWorld().getBlock(plr.getPosition().toInt().add(0, -1, 0));
+                    if (i.useVar) {
+                        if (!Utils.matches(blockState, i.ontop)) return false;
+                    } else {
+                        if (!Utils.matches(blockState.getType(), i.ontop)) return false;
+                    }
                     break;
-
                 case "inside":
-                    String cBlockI = plr.getWorld().
-                            getBlock(plr.getPosition().getFloorX(),
-                                    plr.getPosition().getFloorY(), plr.getPosition().getFloorZ()).getType().getName();
-                    if (!contains(i.inside, cBlockI)) return false;
+                    blockState = plr.getWorld().getBlock(plr.getPosition().toInt().add(0, 0, 0));
+                    if (i.useVar) {
+                        if (!Utils.matches(blockState, i.inside)) return false;
+                    } else {
+                        if (!Utils.matches(blockState.getType(), i.inside)) return false;
+                    }
                     break;
             }
         }
@@ -105,8 +109,12 @@ public class EncounterDataManager {
                     break;
                 case "blocks":
                     if (!headButt) continue;
-                    if (!contains(i.blocks, (((BlockState) e.pokemon.world.getBlockState(e.getTarget().getBlockPos())).getType().getName())))
-                        return false;
+                    BlockState b = ((BlockState)e.pokemon.world.getBlockState(e.getTarget().getBlockPos()));
+                    if (i.useVar) {
+                        if (!Utils.matches(b, i.blocks)) return false;
+                    } else {
+                        if (!Utils.matches(b.getType(), i.blocks)) return false;
+                    };
                     break;
             }
         }
@@ -128,8 +136,12 @@ public class EncounterDataManager {
                     if (!(cTime >= i.time[0] && cTime <= i.time[1])) return false;
                     break;
                 case "blocks":
-                    if (!contains(i.blocks, (((BlockState) e.pokemon.world.getBlockState(e.getTarget().getBlockPos())).getType().getName())))
-                        return false;
+                    BlockState b = ((BlockState)e.pokemon.world.getBlockState(e.getTarget().getBlockPos()));
+                    if (i.useVar) {
+                        if (!Utils.matches(b, i.blocks)) return false;
+                    } else {
+                        if (!Utils.matches(b.getType(), i.blocks)) return false;
+                    };
                     break;
                 case "types":
                     if (!contains(i.types, e.pokemon.getBaseStats().types.get(0).toString().toLowerCase())) {

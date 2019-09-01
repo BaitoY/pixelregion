@@ -6,6 +6,7 @@
         <autoDetectTypes>
           <platformType>FORGE</platformType>
           <platformType>SPONGE</platformType>
+          <platformType>MIXIN</platformType>
           <platformType>MCP</platformType>
         </autoDetectTypes>
       </configuration>
@@ -55,13 +56,21 @@
     </orderEntry>
     <orderEntry type="library" name="Gradle: org.spongepowered:spongeapi:7.1.0" level="project" />
     <orderEntry type="library" name="Gradle: org.json:json:20180813" level="project" />
+    <orderEntry type="library" name="Gradle: org.spongepowered:spongecommon:dev:7.0.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Gradle: com.zaxxer:HikariCP:2.6.3" level="project" />
+    <orderEntry type="library" name="Gradle: org.apache.logging.log4j:log4j-slf4j-impl:2.8.1" level="project" />
     <orderEntry type="library" name="Gradle: org.slf4j:slf4j-api:1.7.25" level="project" />
     <orderEntry type="library" name="Gradle: com.google.inject:guice:4.1.0" level="project" />
     <orderEntry type="library" name="Gradle: org.spongepowered:plugin-meta:0.4.1" level="project" />
+    <orderEntry type="library" name="Gradle: org.spongepowered:mixin:0.7.4-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Gradle: org.spongepowered:configurate-hocon:3.6" level="project" />
     <orderEntry type="library" name="Gradle: org.spongepowered:configurate-gson:3.6" level="project" />
     <orderEntry type="library" name="Gradle: org.spongepowered:configurate-yaml:3.6" level="project" />
     <orderEntry type="library" name="Gradle: org.spongepowered:configurate-core:3.6" level="project" />
+    <orderEntry type="library" name="Gradle: ninja.leaping.configurate:configurate-hocon:3.3" level="project" />
+    <orderEntry type="library" name="Gradle: ninja.leaping.configurate:configurate-gson:3.3" level="project" />
+    <orderEntry type="library" name="Gradle: ninja.leaping.configurate:configurate-yaml:3.3" level="project" />
+    <orderEntry type="library" name="Gradle: ninja.leaping.configurate:configurate-core:3.3" level="project" />
     <orderEntry type="library" name="Gradle: com.google.guava:guava:21.0" level="project" />
     <orderEntry type="library" name="Gradle: com.google.errorprone:error_prone_annotations:2.0.15" level="project" />
     <orderEntry type="library" name="Gradle: com.google.code.gson:gson:2.8.0" level="project" />
@@ -72,10 +81,16 @@
     <orderEntry type="library" name="Gradle: com.flowpowered:flow-math:1.0.3" level="project" />
     <orderEntry type="library" name="Gradle: com.flowpowered:flow-noise:1.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Gradle: org.ow2.asm:asm:5.2" level="project" />
+    <orderEntry type="library" name="Gradle: org.ow2.asm:asm-debug-all:5.2" level="project" />
+    <orderEntry type="library" name="Gradle: com.h2database:h2:1.4.196" level="project" />
+    <orderEntry type="library" name="Gradle: org.mariadb.jdbc:mariadb-java-client:2.0.3" level="project" />
+    <orderEntry type="library" name="Gradle: org.xerial:sqlite-jdbc:3.20.0" level="project" />
     <orderEntry type="library" name="Gradle: javax.inject:javax.inject:1" level="project" />
     <orderEntry type="library" name="Gradle: aopalliance:aopalliance:1.0" level="project" />
     <orderEntry type="library" name="Gradle: com.typesafe:config:1.3.1" level="project" />
     <orderEntry type="library" name="Gradle: org.yaml:snakeyaml:1.18" level="project" />
+    <orderEntry type="library" name="Gradle: commons-io:commons-io:2.4" level="project" />
+    <orderEntry type="library" name="Gradle: org.apache.logging.log4j:log4j-api:2.8.1" level="project" />
     <orderEntry type="library" name="Gradle: org.checkerframework:checker-qual:2.4.0" level="project" />
     <orderEntry type="module-library">
       <library>
@@ -114,9 +129,7 @@
     <orderEntry type="library" name="Gradle: org.apache.httpcomponents:httpcore:4.3.2" level="project" />
     <orderEntry type="library" name="Gradle: it.unimi.dsi:fastutil:7.1.0" level="project" />
     <orderEntry type="library" name="Gradle: org.apache.logging.log4j:log4j-core:2.8.1" level="project" />
-    <orderEntry type="library" name="Gradle: org.apache.logging.log4j:log4j-api:2.8.1" level="project" />
     <orderEntry type="library" name="Gradle: org.jline:jline:3.5.1" level="project" />
-    <orderEntry type="library" name="Gradle: org.ow2.asm:asm-debug-all:5.2" level="project" />
     <orderEntry type="library" name="Gradle: com.typesafe.akka:akka-actor_2.11:2.3.3" level="project" />
     <orderEntry type="library" name="Gradle: com.typesafe:config:1.2.1" level="project" />
     <orderEntry type="library" name="Gradle: org.scala-lang:scala-actors-migration_2.11:1.1.0" level="project" />

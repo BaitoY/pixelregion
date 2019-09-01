@@ -8,6 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.baito.sponge.pixelregion.Main;
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
+import org.baito.sponge.pixelregion.encounterdata.external.ExternalEncounterData;
 import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
 import org.baito.sponge.pixelregion.playerdata.PlayerLink;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
@@ -38,12 +39,13 @@ public class ExternalMoveListener {
             }
             // If the total time in the world is greater than
             // the time the move was last used + the cooldown.
+            ExternalEncounterData eed = EncounterDataManager.getExtMoveData(pl.region.sweetScentData);
             if (e.pokemon.getEntityWorld().getTotalWorldTime() > (move.timeLastUsed + move.getBaseExternalMove().getCooldown(e.pokemon))) {
                 e.setCooldown(500 - e.pokemon.getPokemonData().getStat(StatsType.Speed));
                 move.timeLastUsed = e.pokemon.world.getTotalWorldTime();
-                if (Math.floor(Math.random() * 100) < pl.region.sweetScentData.chance) {
-                    if (EncounterDataManager.metConditions((Player) e.player, e, false, pl.region.sweetScentData)) {
-                        pl.region.sweetScentData.getDED().execute((Player) e.player);
+                if (Math.floor(Math.random() * 100) < eed.chance) {
+                    if (EncounterDataManager.metConditions((Player) e.player, e, false, eed)) {
+                        eed.getDED().execute((Player) e.player);
                     }
                 } else {
                     ((Player) e.player).sendMessage(TextSerializers.FORMATTING_CODE.deserialize(Main.prefix + "No Pokemon appeared!"));
@@ -73,12 +75,13 @@ public class ExternalMoveListener {
 
             // If the total time in the world is greater than
             // the time the move was last used + the cooldown.
+            ExternalEncounterData eed = EncounterDataManager.getExtMoveData(pl.region.headbuttData);
             if (e.pokemon.getEntityWorld().getTotalWorldTime() > (move.timeLastUsed + move.getBaseExternalMove().getCooldown(e.pokemon))) {
                 e.setCooldown(500 - e.pokemon.getPokemonData().getStat(StatsType.Speed));
                 move.timeLastUsed = e.pokemon.world.getTotalWorldTime();
-                if (Math.floor(Math.random() * 100) < pl.region.headbuttData.chance) {
-                    if (EncounterDataManager.metConditions((Player) e.player, e, true, pl.region.headbuttData)) {
-                        pl.region.headbuttData.getDED().execute((Player) e.player);
+                if (Math.floor(Math.random() * 100) < eed.chance) {
+                    if (EncounterDataManager.metConditions((Player) e.player, e, true, eed)) {
+                        eed.getDED().execute((Player) e.player);
                     }
                 } else {
                     ((Player) e.player).sendMessage(TextSerializers.FORMATTING_CODE.deserialize(Main.prefix + "No Pokemon appeared!"));
@@ -94,9 +97,10 @@ public class ExternalMoveListener {
     public void forage(ExternalMoveEvent.ForageMove e) {
         PlayerLink pl = PlayerLinkManager.getLink((Player) e.player);
         if (pl.inRegion && pl.region != null && pl.region.forageData != null) {
-            if (EncounterDataManager.metConditions((Player) e.player, e, pl.region.forageData)) {
-                if (Math.floor(Math.random() * 100) < pl.region.forageData.chance) {
-                    ForageData.ForageItems i = pl.region.forageData.getForageItem();
+            ForageData fd = EncounterDataManager.getForageData(pl.region.forageData);
+            if (EncounterDataManager.metConditions((Player) e.player, e, fd)) {
+                if (Math.floor(Math.random() * 100) < fd.chance) {
+                    ForageData.ForageItems i = fd.getForageItem();
                     e.setForagedItem(i.item);
                     char c = Character.toLowerCase(i.item.getDisplayName().charAt(0));
                     if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {

@@ -6,18 +6,26 @@ import com.pixelmonmod.pixelmon.api.storage.StoragePosition;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import org.baito.sponge.pixelregion.Config;
+import org.baito.sponge.pixelregion.Utils;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.item.inventory.InteractItemEvent;
+import org.spongepowered.common.item.inventory.util.ItemStackUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EventFlagManager {
     public static Map<String, EventFlag> events = new HashMap<>();
 
     public static void generateEvents(File[] f) {
+        events.clear();
         for (int i = 0; i < f.length; i++) {
             EventFlag e = new EventFlag(Config.readConfig(f[i]));
             events.put(e.name, e);
@@ -31,41 +39,18 @@ public class EventFlagManager {
         return null;
     }
 
-    public static boolean NBTMatch(NBTTagCompound one, NBTTagCompound two) {
-        if (one.getKeySet().containsAll(two.getKeySet())) {
-            Set<String> set = two.getKeySet();
-            for (String e : set) {
-                if (one.getTagId(e) != two.getTagId(e)) {
-                    return false;
-                }
-                if (two.getTag(e) instanceof NBTTagCompound) {
-                    if (!NBTMatch(one.getCompoundTag(e), one.getCompoundTag(e))) return false;
-                } else if (two.getTag(e) instanceof NBTTagList) {
-                    for (int i = 0; i < two.getTagList(e, two.getTagId(e)).tagCount(); i++) {
-                        if (!two.getTagList(e, two.getTagId(e)).get(i).equals(one.getTagList(e, one.getTagId(e)).get(i))) return false;
-                    }
-                } else {
-                    if (!two.getTag(e).equals(one.getTag(e))) return false;
-                }
-            }
-        } else {
-            return false;
-        }
-        return true;
-    }
-
     public static boolean metConditions(Player p, EventFlag.FlagCondition f) {
         PlayerFlagData pfd = PlayerFlagDataManager.getOrCreateData(p);
         if (f.enabledFlags != null) {
             for (String i : f.enabledFlags) {
-                if (!pfd.flagState(EventFlagManager.getFlag(i))) {
+                if (pfd.flagState(EventFlagManager.getFlag(i)) != true) {
                     return false;
                 }
             }
         }
-        if (f.disabledFlag != null) {
-            for (String i : f.disabledFlag) {
-                if (pfd.flagState(EventFlagManager.getFlag(i))) {
+        if (f.disabledFlags != null) {
+            for (String i : f.disabledFlags) {
+                if (pfd.flagState(EventFlagManager.getFlag(i)) != false) {
                     return false;
                 }
             }
@@ -181,17 +166,17 @@ public class EventFlagManager {
                 if (!contains(p.getWorld().getWeather().getName(), wc.WEATHER)) return false;
             }
             if (wc.BLOCKS != null) {
-                String block;
+                BlockState blockState;
                 if (wc.onBlock) {
-                    block = p.getWorld().
-                            getBlock(p.getPosition().getFloorX(),
-                                    p.getPosition().getFloorY() - 1, p.getPosition().getFloorZ()).getType().getName();
+                    blockState = p.getWorld().getBlock(p.getPosition().toInt().add(0, -1, 0));
                 } else {
-                    block = p.getWorld().
-                            getBlock(p.getPosition().getFloorX(),
-                                    p.getPosition().getFloorY(), p.getPosition().getFloorZ()).getType().getName();
+                    blockState = p.getWorld().getBlock(p.getPosition().toInt().add(0, 0, 0));
                 }
-                if (!contains(block, wc.BLOCKS)) return false;
+                if (wc.useVar) {
+                    if (!Utils.matches(blockState, wc.BLOCKS)) return false;
+                } else {
+                    if (!Utils.matches(blockState.getType(), wc.BLOCKS)) return false;
+                };
             }
         }
         return true;
@@ -222,5 +207,40 @@ public class EventFlagManager {
             if (i.isShiny()) return true;
         }
         return false;
+    }
+
+    public static boolean metTrigger(EventFlag.FlagTrigger t, InteractBlockEvent.Secondary ev) {
+        if (t.mode != TriggerEnum.INTERACTBLOCK) {
+            return false;
+        }
+        if (t.interactBlock == null) {
+            return false;
+        }
+        if (Utils.stringToBlock(t.interactBlock) != ev.getTargetBlock().getState()) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean metTrigger(EventFlag.FlagTrigger t, InteractItemEvent.Secondary ev) {
+        if (t.mode != TriggerEnum.ITEM) {
+            return false;
+        }
+        if (t.interactItem == null) {
+            return false;
+        }
+        if (!ev.getItemStack().getType().getName().equals(t.interactItem)) {
+            return false;
+        }
+        if (t.nbt != null && !Utils.NBTMatch(t.nbt, ItemStackUtil.toNative(ev.getItemStack().createStack()).serializeNBT())) {
+            return false;
+        }
+        return true;
+    }
+
+    public static void runEffects(Player p, EventFlag.FlagEffect e) {
+        if (e.command != null) {
+            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), e.command);
+        }
     }
 }

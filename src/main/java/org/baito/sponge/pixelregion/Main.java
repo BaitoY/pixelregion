@@ -5,9 +5,11 @@ import com.pixelmonmod.pixelmon.Pixelmon;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagByteArray;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
-import org.baito.sponge.pixelregion.eventflags.EventFlagManager;
+import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
 import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
+import org.baito.sponge.pixelregion.eventlistener.EventFlagListener;
 import org.baito.sponge.pixelregion.eventlistener.ExternalMoveListener;
 import org.baito.sponge.pixelregion.eventlistener.LoginMoveListener;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
@@ -55,6 +57,7 @@ public class Main {
         } else {
             registerCommands();
             Sponge.getEventManager().registerListeners(this, new LoginMoveListener());
+            Sponge.getEventManager().registerListeners(this, new EventFlagListener());
             Pixelmon.EVENT_BUS.register(new ExternalMoveListener());
             Task.builder().interval(50, TimeUnit.MILLISECONDS).execute(() -> {
                 LoginMoveListener.interval++;
@@ -106,7 +109,7 @@ public class Main {
                                     return CommandResult.success();
                                 }
                                 Config.load();
-                                src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Reloaded regions and encounters!"));
+                                src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Reloaded config!"));
                                 break;
                             case "info":
                                 if (!checkPerm((Player) src, "pixelregion.cmd.info")) {
@@ -123,7 +126,8 @@ public class Main {
                                             if (PlayerLinkManager.getLink(plr).region.encounterData != null) {
                                                 plr.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Encounter Data [BETA]"));
                                                 int table = 1;
-                                                for (EncounterData i : PlayerLinkManager.getLink(plr).region.encounterData) {
+                                                for (String ed : PlayerLinkManager.getLink(plr).region.encounterData) {
+                                                    EncounterData i = EncounterDataManager.getData(ed);
                                                     plr.sendMessage(
                                                             Text.builder().append(TextSerializers.FORMATTING_CODE.deserialize("\n&6> Table " + table + " <" + "\n" + i.info())).build());
                                                     table++;
@@ -168,8 +172,15 @@ public class Main {
                 .executor((CommandSource src, CommandContext args) -> {
                     ItemStack is = ((EntityPlayer)src).getItemStackFromSlot(EntityEquipmentSlot.MAINHAND);
                     ItemStack sn = ((EntityPlayer)src).getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
-                    src.sendMessage(Text.of(EventFlagManager.NBTMatch(is.serializeNBT(), sn.serializeNBT())));
+                    NBTTagByteArray testIS = (NBTTagByteArray) is.serializeNBT().getCompoundTag("tag").getTag("test");
+                    NBTTagByteArray testSN = (NBTTagByteArray) sn.serializeNBT().getCompoundTag("tag").getTag("test");
+                    src.sendMessage(Text.of(Utils.NBTMatch(sn.serializeNBT(), is.serializeNBT())));
                     return CommandResult.success();
                 }).build(), "pxre");
     }
+
+    public Logger getLogger() {
+        return logger;
+    }
+
 }

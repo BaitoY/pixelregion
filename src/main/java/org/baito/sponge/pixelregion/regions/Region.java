@@ -1,11 +1,5 @@
 package org.baito.sponge.pixelregion.regions;
 
-import org.baito.sponge.pixelregion.encounterdata.EncounterData;
-import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
-import org.baito.sponge.pixelregion.encounterdata.external.ExternalEncounterData;
-import org.baito.sponge.pixelregion.encounterdata.external.ForageData;
-import org.baito.sponge.pixelregion.eventflags.EventFlag;
-import org.baito.sponge.pixelregion.eventflags.EventFlagManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.spongepowered.api.Sponge;
@@ -24,11 +18,11 @@ public class Region {
     public double weight;
     public Text desc;
     public Polygon polygon;
-    public EncounterData[] encounterData;
-    public ExternalEncounterData headbuttData;
-    public ExternalEncounterData sweetScentData;
-    public ForageData forageData;
-    public EventFlag[] eventFlags;
+    public String[] encounterData;
+    public String headbuttData;
+    public String sweetScentData;
+    public String forageData;
+    public String[] eventFlags;
     public String world;
 
     Region(JSONObject j) {
@@ -64,25 +58,19 @@ public class Region {
                 yDim = null;
             }
             if (j.has("encounterData")) {
-                encounterData = new EncounterData[j.getJSONArray("encounterData").length()];
-                for (int i = 0; i < encounterData.length; i++) {
-                    encounterData[i] = EncounterDataManager.getData(j.getJSONArray("encounterData").getString(i));
-                }
+                encounterData = j.getJSONArray("encounterData").toList().toArray(new String[0]);
             }
             if (j.has("sweetScentData")) {
-                sweetScentData = EncounterDataManager.getExtMoveData(j.getString("sweetScentData"));
+                sweetScentData = j.getString("sweetScentData");
             }
             if (j.has("headbuttData")) {
-                headbuttData = EncounterDataManager.getExtMoveData(j.getString("headbuttData"));
+                headbuttData = j.getString("headbuttData");
             }
             if (j.has("forageData")) {
-                forageData = EncounterDataManager.getForageData(j.getString("forageData"));
+                forageData = j.getString("forageData");
             }
             if (j.has("eventFlags")) {
-                eventFlags = new EventFlag[j.getJSONArray("eventFlags").length()];
-                for (int i = 0; i < j.getJSONArray("eventFlags").length(); i++) {
-                    eventFlags[i] = EventFlagManager.getFlag(j.getJSONArray("eventFlags").getString(i));
-                }
+                eventFlags = j.getJSONArray("eventFlags").toList().toArray(new String[0]);;
             }
             polygon = new Polygon();
             for (int i = 0; i < points.length; i++) {
