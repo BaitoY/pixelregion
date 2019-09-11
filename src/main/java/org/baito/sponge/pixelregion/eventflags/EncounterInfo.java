@@ -8,6 +8,7 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumBossMode;
 import net.minecraft.entity.player.EntityPlayer;
 import org.json.JSONObject;
+import org.spongepowered.api.world.World;
 
 public class EncounterInfo {
     public int lvlMin;
@@ -16,17 +17,19 @@ public class EncounterInfo {
     public int bossChance;
     public String species;
 
+    public int x,y,z;
+
     EncounterInfo(JSONObject j) {
         if (j.has("species")) {
             species = j.getString("species");
         } else {
-            throw new NullPointerException("An Event's Battle effect has no species! Skipping...");
+            throw new NullPointerException("An Event's Battle or Spawn effect has no species! Skipping...");
         }
         if (j.has("levelMin") && j.has("levelMax")) {
             lvlMin = j.getInt("levelMin");
             lvlMax = j.getInt("levelMax");
         } else {
-            throw new NullPointerException("An Event's Battle effect has no level min or max! Skipping...");
+            throw new NullPointerException("An Event's Battle or Spawn effect has no level min or max! Skipping...");
         }
         if (j.has("shinyChance")) {
             shinyChance = j.getInt("shinyChance");
@@ -79,6 +82,14 @@ public class EncounterInfo {
     public EntityPixelmon spawn(EntityPlayer plr) {
         EntityPixelmon e = createPokemon().getOrSpawnPixelmon(plr.getEntityWorld(), plr.getPosition().getX(),
                 plr.getPosition().getY(), plr.getPosition().getZ());
+        if (Math.floor(Math.random() * bossChance) == 0) {
+            e.setBoss(EnumBossMode.getRandomMode());
+        }
+        return e;
+    }
+
+    public EntityPixelmon spawn(World w) {
+        EntityPixelmon e = createPokemon().getOrSpawnPixelmon(((net.minecraft.world.World)w), x, y, z);
         if (Math.floor(Math.random() * bossChance) == 0) {
             e.setBoss(EnumBossMode.getRandomMode());
         }

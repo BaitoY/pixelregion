@@ -2,10 +2,6 @@ package org.baito.sponge.pixelregion;
 
 import com.google.inject.Inject;
 import com.pixelmonmod.pixelmon.Pixelmon;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagByteArray;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
 import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
@@ -90,9 +86,7 @@ public class Main {
                 )
                 .executor((CommandSource src, CommandContext args) -> {
 
-                    if (!checkPerm((Player) src, "pixelregion.cmd")) {
-                        return CommandResult.success();
-                    }
+                    Player plr = src instanceof Player ? (Player) src : null;
                     if (!args.<String>getOne(Text.of("sub")).isPresent()) {
                         PaginationList.builder()
                                 .title(TextSerializers.FORMATTING_CODE.deserialize("&dPixelregion"))
@@ -102,17 +96,16 @@ public class Main {
                                 .sendTo(src);
                     } else {
                         String sub = args.<String>getOne(Text.of("sub")).get();
-                        Player plr = src instanceof Player ? (Player) src : null;
                         switch (sub) {
                             case "reload":
-                                if (!checkPerm((Player) src, "pixelregion.cmd.reload")) {
+                                if (!checkPerm(plr, "pixelregion.cmd.reload")) {
                                     return CommandResult.success();
                                 }
                                 Config.load();
                                 src.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Reloaded config!"));
                                 break;
                             case "info":
-                                if (!checkPerm((Player) src, "pixelregion.cmd.info")) {
+                                if (!checkPerm(plr, "pixelregion.cmd.info")) {
                                     return CommandResult.success();
                                 }
                                 if (plr != null) {
@@ -144,7 +137,7 @@ public class Main {
                                 }
                                 break;
                             case "togglenotif":
-                                if (!checkPerm((Player) src, "pixelregion.cmd.togglenotif")) {
+                                if (!checkPerm(plr, "pixelregion.cmd.togglenotif")) {
                                     return CommandResult.success();
                                 }
                                 if (plr != null) {
@@ -170,11 +163,6 @@ public class Main {
                         GenericArguments.optional(GenericArguments.string(Text.of("sub")))
                 )
                 .executor((CommandSource src, CommandContext args) -> {
-                    ItemStack is = ((EntityPlayer)src).getItemStackFromSlot(EntityEquipmentSlot.MAINHAND);
-                    ItemStack sn = ((EntityPlayer)src).getItemStackFromSlot(EntityEquipmentSlot.OFFHAND);
-                    NBTTagByteArray testIS = (NBTTagByteArray) is.serializeNBT().getCompoundTag("tag").getTag("test");
-                    NBTTagByteArray testSN = (NBTTagByteArray) sn.serializeNBT().getCompoundTag("tag").getTag("test");
-                    src.sendMessage(Text.of(Utils.NBTMatch(sn.serializeNBT(), is.serializeNBT())));
                     return CommandResult.success();
                 }).build(), "pxre");
     }

@@ -2,8 +2,13 @@ package org.baito.sponge.pixelregion.eventflags;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
 import com.pixelmonmod.pixelmon.api.storage.StoragePosition;
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
+import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipant;
+import com.pixelmonmod.pixelmon.battles.controller.participants.WildPixelmonParticipant;
+import com.pixelmonmod.pixelmon.comm.packetHandlers.OpenReplaceMoveScreen;
 import com.pixelmonmod.pixelmon.storage.PlayerPartyStorage;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.baito.sponge.pixelregion.Config;
@@ -122,7 +127,7 @@ public class EventFlagManager {
                     return false;
                 }
                 if (pc.SPECIES != null) {
-                    if (!equals(pc.SPECIES, slotOne.getSpecies().name)) return false;
+                    if (!Utils.equals(pc.SPECIES, slotOne.getSpecies().name)) return false;
                 }
                 if (pc.AVERAGE != -1) {
                     if (!(slotOne.getLevel() >= pc.AVERAGE)) return false;
@@ -136,7 +141,7 @@ public class EventFlagManager {
                     }
                 }
                 if (pc.ABILITY != null) {
-                    if (!equals(pc.ABILITY, slotOne.getAbilityName())) return false;
+                    if (!Utils.equals(pc.ABILITY, slotOne.getAbilityName())) return false;
                 }
                 if (pc.MOVE != null) {
                     List<String> moves = new ArrayList<>();
@@ -149,10 +154,10 @@ public class EventFlagManager {
                     if (!slotOne.isShiny()) return false;
                 }
                 if (pc.GENDER != null) {
-                    if (!equals(slotOne.getGender().toString(), pc.GENDER)) return false;
+                    if (!Utils.equals(slotOne.getGender().toString(), pc.GENDER)) return false;
                 }
                 if (pc.HELDITEM != null) {
-                    if (!equals(pc.HELDITEM, slotOne.getHeldItem().getItem().delegate.name().toString())) return false;
+                    if (!Utils.equals(pc.HELDITEM, slotOne.getHeldItem().getItem().delegate.name().toString())) return false;
                 }
             }
         }
@@ -198,10 +203,6 @@ public class EventFlagManager {
         return false;
     }
 
-    public static boolean equals(String one, String two) {
-        return one.toUpperCase().equals(two.toUpperCase());
-    }
-
     public static boolean shiny(List<Pokemon> e) {
         for (Pokemon i : e) {
             if (i.isShiny()) return true;
@@ -239,8 +240,65 @@ public class EventFlagManager {
     }
 
     public static void runEffects(Player p, EventFlag.FlagEffect e) {
+        if (e.enableFlags != null) {
+            PlayerFlagData pfd = PlayerFlagDataManager.getOrCreateData(p);
+            for (String i : e.enableFlags) {
+                pfd.setFlag(i, true);
+            }
+        }
+        if (e.disableFlags != null) {
+            PlayerFlagData pfd = PlayerFlagDataManager.getOrCreateData(p);
+            for (String i : e.disableFlags) {
+                pfd.setFlag(i, false);
+            }
+        }
+        if (e.toggleFlags != null) {
+            PlayerFlagData pfd = PlayerFlagDataManager.getOrCreateData(p);
+            for (String i : e.toggleFlags) {
+                pfd.setFlag(i, !pfd.flagState(i));
+            }
+        }
+        if (e.battle != null) {
+            if (BattleRegistry.getBattle((EntityPlayerMP)p) == null) {
+                EntityPlayerMP mp = (EntityPlayerMP) p;
+                PlayerParticipant pp = new PlayerParticipant(mp, Pixelmon.storageManager.
+                        getParty(p.getUniqueId()).getAndSendOutFirstAblePokemon((mp)));
+                BattleRegistry.startBattle(pp, new WildPixelmonParticipant(e.battle.spawn(mp)));
+            }
+        }
+        if (e.spawn != null) {
+            e.spawn.spawn(p.getWorld());
+        }
+        if (e.item != null) {
+            p.getInventory().offer(ItemStackUtil.fromNative(e.item));
+        }
+        if (e.moveTeach != null) {
+            List<Pokemon> party = Pixelmon.storageManager.getParty(p.getUniqueId()).getTeam();
+            for (Pokemon i : party) {
+                if (Utils.equals(i.getSpecies().name, e.moveTeach[0])) {
+                    if (Attack.hasAttack(e.moveTeach[1])) {
+                        Attack toTeach = new Attack(e.moveTeach[1]);
+                        if (!i.getMoveset().hasAttack(toTeach)) {
+                            Pixelmon.network.sendTo(new OpenReplaceMoveScreen(i.getUUID(), toTeach.getActualMove().getAttackId()), ((EntityPlayerMP)p));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (e.editPoke != null) {
+            List<Pokemon> party = Pixelmon.storageManager.getParty(p.getUniqueId()).getTeam();
+            for (Pokemon i : party) {
+                if (Utils.equals(i.getSpecies().name, e.editPoke[0])) {
+                        PokemonSpec.from(e.editPoke[1].split(" ")).apply(i);
+                        break;
+                }
+            }
+        }
         if (e.command != null) {
-            Sponge.getCommandManager().process(Sponge.getServer().getConsole(), e.command);
+            for (String i : e.command) {
+                Sponge.getCommandManager().process(Sponge.getServer().getConsole(), i.replaceAll("\\{player}", p.getName()));
+            }
         }
     }
 }

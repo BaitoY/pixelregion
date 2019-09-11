@@ -113,4 +113,8 @@ public class Utils {
         }
         return true;
     }
+
+    public static boolean equals(String one, String two) {
+        return one.toUpperCase().equals(two.toUpperCase());
+    }
 }

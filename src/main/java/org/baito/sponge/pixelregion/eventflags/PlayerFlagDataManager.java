@@ -2,7 +2,6 @@ package org.baito.sponge.pixelregion.eventflags;
 
 import org.apache.commons.io.FilenameUtils;
 import org.baito.sponge.pixelregion.Config;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 
 import java.io.File;
@@ -54,15 +53,7 @@ public class PlayerFlagDataManager {
 
     public static void save() {
         for (PlayerFlagData i : data.values()) {
-            Player p = Sponge.getServer().getPlayer(i.uuid).get();
-            File f = getFile(p);
-            try {
-                PrintWriter pw = new PrintWriter(f);
-                pw.print(i.toJSON().toString(4));
-                pw.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            i.save();
         }
     }
 }

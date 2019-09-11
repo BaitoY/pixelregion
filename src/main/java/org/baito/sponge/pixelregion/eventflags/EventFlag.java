@@ -1,6 +1,5 @@
 package org.baito.sponge.pixelregion.eventflags;
 
-import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
@@ -167,8 +166,9 @@ public class EventFlag {
         public EncounterInfo battle;
         public EncounterInfo spawn;
         public ItemStack item;
-        public String moveTeach;
-        public PokemonSpec editPoke;
+        public String[] moveTeach;
+        public String[] editPoke;
+        public String[] evolvePoke;
         public String[] command;
 
         FlagEffect(JSONObject j) {
@@ -177,24 +177,51 @@ public class EventFlag {
                 disableFlags = j.has("disableFlags") ? j.getJSONArray("disableFlags").toList().toArray(new String[0]) : null;
                 toggleFlags = j.has("toggleFlags") ? j.getJSONArray("toggleFlags").toList().toArray(new String[0]) : null;
                 battle = j.has("battle") ? new EncounterInfo(j.getJSONObject("battle")) : null;
-                spawn = j.has("spawn") ? new EncounterInfo(j.getJSONObject("spawn")) : null;
+                if (j.has("spawn")) {
+                    spawn = j.has("spawn") ? new EncounterInfo(j.getJSONObject("spawn")) : null;
+                    spawn.x = j.getJSONObject("spawn").getInt("x");
+                    spawn.y = j.getJSONObject("spawn").getInt("y");
+                    spawn.z = j.getJSONObject("spawn").getInt("z");
+                }
                 if (j.has("giveItem")) {
                     JSONObject itemInfo = j.getJSONObject("giveItem");
                     if (!itemInfo.has("id")) {
                         throw new NullPointerException("An event effect has no ID for giveItem! Skipping...");
                     }
                     if (Item.getByNameOrId(itemInfo.getString("id")) == null) {
-                        throw new NullPointerException("No item with ID " + itemInfo.getString("id") + " exists! Skipping");
+                        throw new NullPointerException("An event effect's ID for giveItem " + itemInfo.getString("id") + " does not exist! Skipping");
                     }
-                    ItemStack e = new ItemStack(Item.getByNameOrId(itemInfo.getString("id")));
-                    NBTTagCompound nbt = new NBTTagCompound();
+                    if (itemInfo.has("quantity")) {
+                        item = new ItemStack(Item.getByNameOrId(itemInfo.getString("id")), itemInfo.getInt("quantity"));
+                    } else {
+                        item = new ItemStack(Item.getByNameOrId(itemInfo.getString("id")), 1);
+                    }
                     try {
-                        nbt = j.has("nbt") ? JsonToNBT.getTagFromJson(j.getString("nbt")) : null;
+                        if (itemInfo.has("nbt")) {
+                            NBTTagCompound nbt = JsonToNBT.getTagFromJson(itemInfo.getString("nbt"));
+                            item.setTagCompound(nbt);
+                        }
                     } catch (NBTException ex) {
                         ex.printStackTrace();
                     }
-                    e.serializeNBT().merge(nbt);
-                    item = e;
+                }
+                if (j.has("teachMove")) {
+                    JSONObject tm = j.getJSONObject("teachMove");
+                    moveTeach = new String[2];
+                    if (!tm.has("pokemon") && !tm.has("move")) {
+                        throw new NullPointerException("An event effect has no Pokemon or move for teachMove! Skipping...");
+                    }
+                    moveTeach[0] = tm.getString("pokemon");
+                    moveTeach[1] = tm.getString("move");
+                }
+                if (j.has("modifyPokemon")) {
+                    editPoke = new String[2];
+                    JSONObject tm = j.getJSONObject("modifyPokemon");
+                    if (!tm.has("pokemon") && !tm.has("spec")) {
+                        throw new NullPointerException("An event effect has no Pokemon or spec for modifyPokemon! Skipping...");
+                    }
+                    editPoke[0] = tm.getString("pokemon");
+                    editPoke[1] = tm.getString("spec");
                 }
                 command = j.has("runCommand") ? j.getJSONArray("runCommand").toList().toArray(new String[0]) : null;
             } catch (NullPointerException e) {

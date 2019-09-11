@@ -1,9 +1,14 @@
 package org.baito.sponge.pixelregion.eventflags;
 
+import org.baito.sponge.pixelregion.Config;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -51,5 +56,37 @@ public class PlayerFlagData {
             return values.get(f.name);
         }
         return false;
+    }
+
+    public boolean flagState(String f) {
+        if (values.containsKey(f)) {
+            return values.get(f);
+        }
+        return false;
+    }
+
+    public void setFlag(EventFlag f, boolean value) {
+        values.put(f.name, value);
+        save();
+    }
+
+    public void setFlag(String f, boolean value) {
+        values.put(f, value);
+        save();
+    }
+
+    public void save() {
+        Player p = Sponge.getServer().getPlayer(uuid).get();
+        File f = PlayerFlagDataManager.getFile(p);
+        if (Config.readConfig(f).toString().equals(toJSON().toString())) {
+            return;
+        }
+        try {
+            PrintWriter pw = new PrintWriter(f);
+            pw.print(toJSON().toString(4));
+            pw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
