@@ -1,0 +1,12 @@
+{
+  "ENABLE_GLOBAL_REGION": false,
+  "GLOBAL_REGION": {
+    "DISPLAY_NAME": "Wilderness",
+    "DESCRIPTION": "The outdoor wilderness",
+    "ENCOUNTER_DATA": [],
+    "HEADBUTT_DATA": "",
+    "SWEET_SCENT_DATA": "",
+    "FORAGE_DATA": "",
+    "EVENTS": []
+  }
+}

@@ -2,6 +2,7 @@ package org.baito.sponge.pixelregion.eventlistener;
 
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
+import org.baito.sponge.pixelregion.eventflags.EventFlagManager;
 import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
 import org.baito.sponge.pixelregion.playerdata.PlayerLink;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
@@ -43,6 +44,14 @@ public class LoginMoveListener {
                 PL.region = R;
                 if (R.notifyEnter && PL.sendNotif) {
                     e.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(prefix + "Now entering >>> &f&l").toBuilder().append(R.displayName).build());
+                }
+                if (R.eventFlags != null) {
+                    for (String ev : R.eventFlags) {
+                        if (EventFlagManager.getFlag(ev).trigger == null && EventFlagManager.metConditions(e, EventFlagManager.getFlag(ev).condition)) {
+                                EventFlagManager.runEffects(e, EventFlagManager.getFlag(ev).effects);
+
+                        }
+                    }
                 }
             }
         } else if (PL.inRegion) {

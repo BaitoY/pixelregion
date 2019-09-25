@@ -5,6 +5,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.service.user.UserStorageService;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,8 +78,9 @@ public class PlayerFlagData {
     }
 
     public void save() {
-        Player p = Sponge.getServer().getPlayer(uuid).get();
-        File f = PlayerFlagDataManager.getFile(p);
+        User p = Sponge.getServiceManager().provide(UserStorageService.class).get().get(uuid).get();
+        if (p == null) return;
+        File f = PlayerFlagDataManager.getFile(uuid);
         if (Config.readConfig(f).toString().equals(toJSON().toString())) {
             return;
         }

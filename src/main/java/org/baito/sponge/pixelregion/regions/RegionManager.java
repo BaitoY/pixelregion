@@ -11,6 +11,7 @@ public class RegionManager {
     public static Map<String, Region> allRegions = new HashMap<>();
 
     public static void generateRegions(File[] f) {
+        allRegions.clear();
         for (int i = 0; i < f.length; i++) {
             Region r = new Region(Config.readConfig(f[i]));
             allRegions.put(r.name, r);

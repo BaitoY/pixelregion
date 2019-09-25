@@ -26,6 +26,8 @@ public class EventFlag {
             }
             if (j.has("trigger")) {
                 trigger = new FlagTrigger(j.getJSONObject("trigger"));
+            } else {
+                trigger = null;
             }
             if (j.has("effects")) {
                     effects = new FlagEffect(j.getJSONObject("effects"));
@@ -145,8 +147,6 @@ public class EventFlag {
                     interactItem = j.getJSONObject("useItem").getString("id");
                     nbt = j.getJSONObject("useItem").has("nbt") ? JsonToNBT.getTagFromJson(j.getJSONObject("useItem").getString("nbt")) : null;
                     consumeOnUse = j.getJSONObject("useItem").has("consume") && j.getJSONObject("useItem").getBoolean("consume");
-                } else if (j.has("interact")) {
-                    mode = TriggerEnum.INTERACT;
                 } else if (j.has("interactBlock")) {
                     mode = TriggerEnum.INTERACTBLOCK;
                     nbt = j.getJSONObject("interactBlock").has("nbt") ? JsonToNBT.getTagFromJson(j.getJSONObject("interactBlock").getString("nbt")) : null;
@@ -170,6 +170,7 @@ public class EventFlag {
         public String[] editPoke;
         public String[] evolvePoke;
         public String[] command;
+        public String[] message;
 
         FlagEffect(JSONObject j) {
             try {
@@ -224,6 +225,7 @@ public class EventFlag {
                     editPoke[1] = tm.getString("spec");
                 }
                 command = j.has("runCommand") ? j.getJSONArray("runCommand").toList().toArray(new String[0]) : null;
+                message = j.has("sendMessage") ? j.getJSONArray("sendMessage").toList().toArray(new String[0]) : null;
             } catch (NullPointerException e) {
                 e.printStackTrace();
             }

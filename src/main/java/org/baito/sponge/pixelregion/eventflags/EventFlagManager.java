@@ -1,6 +1,7 @@
 package org.baito.sponge.pixelregion.eventflags;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.dialogue.Dialogue;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
 import com.pixelmonmod.pixelmon.api.storage.StoragePosition;
@@ -299,6 +300,13 @@ public class EventFlagManager {
             for (String i : e.command) {
                 Sponge.getCommandManager().process(Sponge.getServer().getConsole(), i.replaceAll("\\{player}", p.getName()));
             }
+        }
+        if (e.message != null) {
+            ArrayList<Dialogue> list = new ArrayList<>();
+            for (String m : e.message) {
+                list.add(new Dialogue("", m, m, null));
+            }
+            Dialogue.setPlayerDialogueData((EntityPlayerMP) p, list, true);
         }
     }
 }

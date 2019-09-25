@@ -2,6 +2,7 @@ package org.baito.sponge.pixelregion;
 
 import com.google.inject.Inject;
 import com.pixelmonmod.pixelmon.Pixelmon;
+import org.baito.sponge.pixelregion.commands.EditCommand;
 import org.baito.sponge.pixelregion.encounterdata.EncounterData;
 import org.baito.sponge.pixelregion.encounterdata.EncounterDataManager;
 import org.baito.sponge.pixelregion.eventflags.PlayerFlagDataManager;
@@ -9,7 +10,6 @@ import org.baito.sponge.pixelregion.eventlistener.EventFlagListener;
 import org.baito.sponge.pixelregion.eventlistener.ExternalMoveListener;
 import org.baito.sponge.pixelregion.eventlistener.LoginMoveListener;
 import org.baito.sponge.pixelregion.playerdata.PlayerLinkManager;
-import org.baito.sponge.pixelregion.regions.RegionManager;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandResult;
@@ -45,24 +45,21 @@ public class Main {
         if (!Sponge.getPluginManager().getPlugin("pixelmon").isPresent()) {
             logger.info("Pixelmon is not installed! Pixelregion will not be enabled.");
             return;
+
         }
         Config.setup();
         Config.load();
-        if (RegionManager.allRegions.isEmpty()) {
-            logger.info("No regions have been detected, Pixelregion will not be enabled.");
-        } else {
-            registerCommands();
-            Sponge.getEventManager().registerListeners(this, new LoginMoveListener());
-            Sponge.getEventManager().registerListeners(this, new EventFlagListener());
-            Pixelmon.EVENT_BUS.register(new ExternalMoveListener());
-            Task.builder().interval(50, TimeUnit.MILLISECONDS).execute(() -> {
-                LoginMoveListener.interval++;
-                if (LoginMoveListener.interval > 20) {
-                    LoginMoveListener.interval = 0;
-                }
-            }).submit(this);
-            logger.info("Pixelregion has been successfully enabled!");
-        }
+        registerCommands();
+        Sponge.getEventManager().registerListeners(this, new LoginMoveListener());
+        Sponge.getEventManager().registerListeners(this, new EventFlagListener());
+        Pixelmon.EVENT_BUS.register(new ExternalMoveListener());
+        Task.builder().interval(50, TimeUnit.MILLISECONDS).execute(() -> {
+            LoginMoveListener.interval++;
+            if (LoginMoveListener.interval > 20) {
+                LoginMoveListener.interval = 0;
+            }
+        }).submit(this);
+        logger.info("Pixelregion has been successfully enabled!");
     }
 
     @Listener
@@ -92,7 +89,7 @@ public class Main {
                                 .title(TextSerializers.FORMATTING_CODE.deserialize("&dPixelregion"))
                                 .padding(TextSerializers.FORMATTING_CODE.deserialize("&7="))
                                 .contents(TextSerializers.FORMATTING_CODE.deserialize("&6Version: &b&o1.0-SNAPSHOT"),
-                                        TextSerializers.FORMATTING_CODE.deserialize("&6Available Commands: &b&oreload, rinfo, togglenotif"))
+                                        TextSerializers.FORMATTING_CODE.deserialize("&6Available Commands: &b&oreload, info, togglenotif"))
                                 .sendTo(src);
                     } else {
                         String sub = args.<String>getOne(Text.of("sub")).get();
@@ -157,14 +154,7 @@ public class Main {
                     return CommandResult.success();
                 }).build(), "pxr");
 
-        Sponge.getCommandManager().register(this, CommandSpec.builder()
-                .description(Text.of("Region editor for Pixelregion"))
-                .arguments(
-                        GenericArguments.optional(GenericArguments.string(Text.of("sub")))
-                )
-                .executor((CommandSource src, CommandContext args) -> {
-                    return CommandResult.success();
-                }).build(), "pxre");
+        Sponge.getCommandManager().register(this, new EditCommand().getSpec(), "pxre");
     }
 
     public Logger getLogger() {

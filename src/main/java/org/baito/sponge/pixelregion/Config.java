@@ -21,12 +21,23 @@ public class Config {
     public static Path execDir = Sponge.getPluginManager().getPlugin("pixelregion").get().getSource().get();
     public static Path pxrDir = execDir.getParent().getParent().resolve("config").resolve("pixelregion");
 
+    public static boolean ENABLE_GLOBAL_REGION;
+    public static JSONObject GLOBAL_REGION;
+
     Config() {
     }
 
     public static void setup() {
         if (!new File(pxrDir.toString()).exists()) {
             new File(pxrDir.toString()).mkdirs();
+            /*if (!new File(pxrDir.resolve("config.json").toString()).exists()) {
+                try {
+                    Sponge.getAssetManager().getAsset(Sponge.getPluginManager().getPlugin("pixelregion").get(), "config.json")
+                            .get().copyToDirectory(pxrDir);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }*/
         }
         if (!new File(pxrDir.resolve("regions").toString()).exists()) {
             new File(pxrDir.resolve("regions").toString()).mkdirs();
@@ -96,6 +107,28 @@ public class Config {
     }
 
     public static void load() {
+        /*JSONObject j = readConfig(new File(pxrDir.resolve("config.json").toString()));
+        if (j.has("ENABLE_GLOBAL_REGION")) {
+            Config.ENABLE_GLOBAL_REGION = j.getBoolean("ENABLE_GLOBAL_REGION");
+        } else {
+            Config.ENABLE_GLOBAL_REGION = false;
+            ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("Config has no \"ENABLE_GLOBAL_REGION\" property, defaulting to false.");
+        }
+        if (ENABLE_GLOBAL_REGION && j.has("GLOBAL_REGION")) {
+            GLOBAL_REGION = j.getJSONObject("GLOBAL_REGION");
+            RegionManager.allRegions.put("_global", new GlobalRegion(GLOBAL_REGION));
+        } else if (ENABLE_GLOBAL_REGION && !j.has("GLOBAL_REGION")) {
+            GLOBAL_REGION = new JSONObject("{\"DISPLAY_NAME\": \"Wilderness\",\n" +
+                    "    \"DESCRIPTION\": \"The outdoor wilderness\",\n" +
+                    "    \"ENCOUNTER_DATA\": [],\n" +
+                    "    \"HEADBUTT_DATA\": \"\",\n" +
+                    "    \"SWEET_SCENT_DATA\": \"\",\n" +
+                    "    \"FORAGE_DATA\": \"\",\n" +
+                    "    \"EVENTS\": []\n" +
+                    "  }");
+            ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("Config has no \"GLOBAL_REGION\" object, using default.");
+            RegionManager.allRegions.put("_global", new GlobalRegion(GLOBAL_REGION));
+        }*/
         File[] encConfigs = getAllFilesInDirectory(new File(pxrDir.resolve("encounterdata") + fs));
         if (encConfigs.length > 0) {
             ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("Encounter data configs loaded");
@@ -126,6 +159,7 @@ public class Config {
             ((Main)Sponge.getPluginManager().getPlugin("pixelregion").get().getInstance().get()).getLogger().info("Region configs loaded");
             RegionManager.generateRegions(regionConfigs);
         }
+
     }
 
     private static File[] getAllFilesInDirectory(File direc) {

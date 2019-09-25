@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class PlayerFlagDataManager {
     public static Map<String, PlayerFlagData> data = new HashMap<>();
@@ -34,10 +35,10 @@ public class PlayerFlagDataManager {
         return null;
     }
 
-    public static File getFile(Player p) {
+    public static File getFile(UUID uuid) {
         Path direc = Config.pxrDir.resolve("events").resolve("playerdata");
         for (int i = 0; i < direc.toFile().listFiles().length; i++) {
-            if (FilenameUtils.removeExtension(direc.toFile().listFiles()[i].getName()).equals(p.getUniqueId().toString())) {
+            if (FilenameUtils.removeExtension(direc.toFile().listFiles()[i].getName()).equals(uuid.toString())) {
                 return direc.toFile().listFiles()[i];
             }
         }
@@ -45,6 +46,7 @@ public class PlayerFlagDataManager {
     }
 
     public static void generateData(File[] f) {
+        data.clear();
         for (int i = 0; i < f.length; i++) {
             PlayerFlagData pfd = new PlayerFlagData(Config.readConfig(f[i]));
             data.put(pfd.uuid + "", pfd);

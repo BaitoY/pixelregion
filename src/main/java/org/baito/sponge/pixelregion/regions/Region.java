@@ -25,6 +25,10 @@ public class Region {
     public String[] eventFlags;
     public String world;
 
+    Region() {
+
+    }
+
     Region(JSONObject j) {
         try {
             if (!j.has("name") || !j.has("points")) {

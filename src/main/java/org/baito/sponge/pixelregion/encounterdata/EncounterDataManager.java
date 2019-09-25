@@ -19,6 +19,7 @@ public class EncounterDataManager {
     public static Map<String, ForageData> forageData = new HashMap<>();
 
     public static void generateEncounters(File[] f) {
+        encounterData .clear();
         for (int i = 0; i < f.length; i++) {
             EncounterData ed = new EncounterData(Config.readConfig(f[i]));
             encounterData.put(ed.name, ed);
@@ -26,6 +27,7 @@ public class EncounterDataManager {
     }
 
     public static void generateExtEncounters(File[] f) {
+        externalEncounterData.clear();
         for (int i = 0; i < f.length; i++) {
             ExternalEncounterData ed = new ExternalEncounterData(Config.readConfig(f[i]));
             externalEncounterData.put(ed.name, ed);
@@ -33,6 +35,7 @@ public class EncounterDataManager {
     }
 
     public static void generateForageData(File[] f) {
+        forageData.clear();
         for (int i = 0; i < f.length; i++) {
             ForageData ed = new ForageData(Config.readConfig(f[i]));
             forageData.put(ed.name, ed);
